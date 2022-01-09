@@ -27,7 +27,12 @@ async function addToMongoDB(){
 
 async function addAllFromMongoDbToRedisQueue() {
     const playerScripts: any[] = await mongo.getAllPlayerScripts();
-    const scripts: string[] = playerScripts.map((obj) => obj.script)
+    const scripts: string[] = playerScripts.map((obj) => {
+        return JSON.stringify({
+            script:obj.script,
+            id: obj.id
+        })
+    })
 
     await redisSender.push(constants.ScriptsToProcess, scripts);
 

@@ -1,7 +1,6 @@
 import RedisWrapper from './redis/redis'
 import { v4 as uuid } from 'uuid';
 import { fork } from 'child_process';
-import MongoWrapper from './mongodb/mongodb';
 import os from 'os';
 import Logger from './logger/logger';
 import constants, { GameTickPhase } from './constants';
@@ -40,12 +39,23 @@ async function makeKeepAliveCall(){
     redisSender.hset(constants.DispatchersKey, hostId, JSON.stringify({ id: hostId, keepAlive: new Date().toISOString(), currentlyWorkingRunners: Object.keys(executionsRunning).length, totalCompletes }));
 }
 
-async function sendNext(nextScript: string, hostNumber: string, currentPhase: GameTickPhase) {
+async function sendNext(nextJobString: string, hostNumber: string, currentPhase: GameTickPhase) {
 
     const executionId: string = uuid();
     executionsRunning[executionId] = true;
     runnerProcesses[hostNumber].lastExecutionStartDate = new Date();
-    await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify({ script: nextScript, id: executionId, job: GameTickPhase[currentPhase]}))
+    const nextJobObj = JSON.parse(nextJobString);
+    switch (currentPhase) {
+        case GameTickPhase.ScriptPhase:
+            await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify({ script: nextJobObj.script, id: executionId, userId: nextJobObj.id, job: GameTickPhase[currentPhase] }))
+            break;
+        case GameTickPhase.ResultProcessingPhase:
+            await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify({ intents: nextJobObj, id: executionId, job: GameTickPhase[currentPhase] }))
+            break;
+        default:
+            break;
+    }
+
     runnerProcesses[hostNumber].timeout = setTimeout(() => {
         try {
             logger.debug(`Timeout has come for ${hostNumber} with ${executionsRunning[executionId]}`)

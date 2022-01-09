@@ -30,6 +30,7 @@ export default class RedisWrapper {
         return this.#client.hGetAll(key);
     }
     push(key: string, value: string | string[]){
+
         return this.#client.lPush(key, value);
     }
     pop(key: string){

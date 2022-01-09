@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb'
+import LogIntent from '../intents/log/logIntent';
 import { v4 as uuid } from 'uuid';
 
 export default class MongoWrapper{
@@ -21,4 +22,5 @@ export default class MongoWrapper{
         const collection = db.collection('playerScripts');
         return await collection.find({}).toArray();
     }
+
 }
