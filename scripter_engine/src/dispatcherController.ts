@@ -33,9 +33,9 @@ async function addAllFromMongoDbToRedisQueue() {
             id: obj.id
         })
     })
-
-    await redisSender.push(constants.ScriptsToProcess, scripts);
-
+    if(scripts.length){
+        await redisSender.push(constants.ScriptsToProcess, scripts);
+    }
 }
 
 async function checkIfScriptPhaseDone(){
