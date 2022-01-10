@@ -21,7 +21,7 @@ const hostChannel = `${hostId}@hosts`
 const redisSubscriber = new RedisWrapper()
 const redisSender = new RedisWrapper()
 
-const timeout = 10000;
+const timeout = 600;
 
 const numberOfRunners = cpuCount;
 logger.info(`cpuCount is ${cpuCount}, setting number of runners to ${numberOfRunners}`)
@@ -155,7 +155,6 @@ async function dispatchTasks() {
             dispatchTasks();
         }, constants.TickCheckInterval)
     }
-
 }
 
 async function main() {

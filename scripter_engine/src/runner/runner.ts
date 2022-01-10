@@ -9,10 +9,11 @@ import MongoWrapper from '../mongodb/mongodb';
 const logger = new Logger()
 const redisClient = new RedisWrapper()
 const redisSubscriber = new RedisWrapper()
-const timeout = 10000;
+const timeout = 500;
 const hostChannel = process.argv[2];
 const runnerId = process.argv[3];
 const mongo = new MongoWrapper()
+
 
 async function getScriptToRun (message: string, channel: string){
     const messageObj = JSON.parse(message)
@@ -22,15 +23,20 @@ async function getScriptToRun (message: string, channel: string){
         const intents: Intent[] = []
         const ext = { exports: "", intents };
         let timedOut = false;
-        try{
+        try {
             const userId = messageObj.userId;
-            const vm = new VM({ sandbox: { ext, console: { log: (val: string) => { intents.push(new LogIntent(val, userId, new Date().toISOString())) } } },timeout});
-            const compiled = new VMScript(messageObj.script)
-            const result = vm.run(compiled);
-            await redisClient.push(constants.ResultsToProcess, JSON.stringify(intents))
+            const vm = new VM({ sandbox: { ext },timeout});
+            const console = { log (val: string) {
+                const intent = new LogIntent(val, userId, new Date().toISOString())
+                intents.push(intent)
+
+            } }
+            vm.freeze(console, 'console');
+            const result = vm.run(messageObj.script);
         } catch{
             timedOut = true;
         } finally{
+            redisClient.push(constants.ResultsToProcess, JSON.stringify(intents))
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:${timedOut}`)
         }
     } else{

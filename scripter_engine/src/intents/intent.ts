@@ -1,4 +1,3 @@
-import LogIntent from "./log/logIntent";
 
 export enum IntentTypes{
     Log,
