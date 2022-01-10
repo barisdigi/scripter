@@ -11,4 +11,8 @@ export default class LogIntent implements Intent{
         this.playerId = playerId;
         this.time = time;
     }
+
+    get messageWithTime(){
+        return `${this.time}: ${this.message}`
+    }
 }

@@ -17,7 +17,14 @@ export default class MongoWrapper{
             const collection = db.collection('playerScripts');
             return await collection.insertOne({ id: id, script });
         }
-        
+    }
+    async editPlayerScript(id:string, script:string){
+        const playerId = uuid()
+        if(this.#client){
+            const db = this.#client.db(this.#dbName);
+            const collection = db.collection('playerScripts');
+            return await collection.updateOne({ id: id }, {$set: {script}});
+        }
     }
     async getAllPlayerScripts(){
         if (this.#client) {

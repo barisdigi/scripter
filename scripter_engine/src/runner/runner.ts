@@ -15,8 +15,6 @@ const runnerId = process.argv[3];
 const mongo = new MongoWrapper()
 
 async function getScriptToRun (message: string, channel: string){
-
-
     const messageObj = JSON.parse(message)
     const executionId = messageObj.id;
     const job = GameTickPhase[messageObj.job as keyof typeof GameTickPhase];
@@ -42,6 +40,7 @@ async function getScriptToRun (message: string, channel: string){
                 switch (intentObj.type) {
                     case IntentTypes.Log:
                         const intent: LogIntent = new LogIntent(intentObj.message, intentObj.playerId, intentObj.time)
+                        redisClient.publish(`console_logs/${intentObj.playerId}`, intent.messageWithTime)
                         break;
 
                     default:
