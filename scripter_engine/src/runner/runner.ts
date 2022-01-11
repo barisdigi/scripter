@@ -40,21 +40,27 @@ async function getScriptToRun (message: string, channel: string){
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:${timedOut}`)
         }
     } else{
-        const intents = messageObj.intents
-        if(intents.length ){
-            for (const intentObj of intents){
-                switch (intentObj.type) {
-                    case IntentTypes.Log:
-                        const intent: LogIntent = new LogIntent(intentObj.message, intentObj.playerId, intentObj.time)
-                        redisClient.publish(`console_logs/${intentObj.playerId}`, intent.messageWithTime)
-                        break;
+        try{
+            const intents: any[] = messageObj.intents
+            if(intents.length){
+                for (const intentObj of intents){
+                    switch (intentObj.type) {
+                        case IntentTypes.Log:
+                            const intent: LogIntent = new LogIntent(intentObj.message, intentObj.playerId, intentObj.time)
+                            redisClient.publish(`console_logs/${intentObj.playerId}`, intent.messageWithTime)
+                            break;
 
-                    default:
-                        break;
+                        default:
+                            break;
+                    }
                 }
             }
+        }catch (e) {
+            logger.error(JSON.stringify(e));
+        } finally{
+            redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`)
         }
-        redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`)
+
     }
 }
 

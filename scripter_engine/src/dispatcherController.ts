@@ -34,7 +34,7 @@ async function addAllFromMongoDbToRedisQueue() {
         })
     })
     if(scripts.length){
-        await redisSender.push(constants.ScriptsToProcess, scripts);
+        return await redisSender.push(constants.ScriptsToProcess, scripts);
     }
 }
 
@@ -97,15 +97,17 @@ async function checkIfResultProcessingPhaseDone(){
 async function startResultProcessingPhase(){
     logger.debug(`Starting result processing phase for tick ${tickCount}`)
     await redisSender.set(constants.Phase, GameTickPhase[GameTickPhase.ResultProcessingPhase])
+    await redisSender.publish(constants.PhaseChangedChannel, GameTickPhase[GameTickPhase.ResultProcessingPhase])
     checkIfResultProcessingPhaseDone()
 }
 
 async function startNewTick(){
     tickCount = tickCount + 1;
-    logger.info(`Starting tick number ${tickCount}`)
-    redisSender.set(constants.Phase, GameTickPhase[GameTickPhase.ScriptPhase])
-    redisSender.set(constants.TickStartTimeKey, new Date().toISOString())
+    logger.debug(`Starting tick number ${tickCount}`)
     await addAllFromMongoDbToRedisQueue();
+    redisSender.set(constants.Phase, GameTickPhase[GameTickPhase.ScriptPhase])
+    await redisSender.publish(constants.PhaseChangedChannel, GameTickPhase[GameTickPhase.ScriptPhase])
+    redisSender.set(constants.TickStartTimeKey, new Date().toISOString())
     await redisSender.set(TickCountKey, (tickCount).toString())
 
     // Check once after timer is done if every dispatcher is done
@@ -118,6 +120,7 @@ async function main() {
 
     if(currentPhase === undefined || currentPhase === null){
         await redisSender.set(constants.Phase, GameTickPhase[GameTickPhase.ScriptPhase])
+        await redisSender.publish(constants.PhaseChangedChannel, GameTickPhase[GameTickPhase.ScriptPhase])
     }
 
     const currentTickCountRedis = await redisSender.get(TickCountKey);

@@ -13,7 +13,8 @@ const contants = {
     DispatchersKeepaliveSendInterval: 5000,
     DispatcherKeepAliveTimeout: 7500,
     Phase: "CurrentTickPhase",
-    TickStartTimeKey: "LastTickStartTime"
+    TickStartTimeKey: "LastTickStartTime",
+    PhaseChangedChannel: "NewPhase"
 }
 
 

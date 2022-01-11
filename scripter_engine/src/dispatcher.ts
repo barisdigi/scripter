@@ -21,7 +21,7 @@ const hostChannel = `${hostId}@hosts`
 const redisSubscriber = new RedisWrapper()
 const redisSender = new RedisWrapper()
 
-const timeout = 600;
+const timeout = 400;
 
 const numberOfRunners = cpuCount;
 logger.info(`cpuCount is ${cpuCount}, setting number of runners to ${numberOfRunners}`)
@@ -40,7 +40,6 @@ async function makeKeepAliveCall(){
 }
 
 async function sendNext(nextJobString: string, hostNumber: string, currentPhase: GameTickPhase) {
-
     const executionId: string = uuid();
     executionsRunning[executionId] = true;
     runnerProcesses[hostNumber].lastExecutionStartDate = new Date();
@@ -55,13 +54,14 @@ async function sendNext(nextJobString: string, hostNumber: string, currentPhase:
         default:
             break;
     }
-
+    const startTimestamp = new Date().getTime()
     runnerProcesses[hostNumber].timeout = setTimeout(() => {
         try {
-            logger.debug(`Timeout has come for ${hostNumber} with ${executionsRunning[executionId]}`)
+            const timePassed = (new Date().getTime() - startTimestamp) / 1000;
+            logger.debug(`Timeout has come for ${hostNumber} with ${executionsRunning[executionId]} after ${timePassed} seconds`)
             if (runnerProcesses[hostNumber] && (!(runnerProcesses[hostNumber].lastExecutionEndDate) || (runnerProcesses[hostNumber].lastExecutionEndDate - runnerProcesses[hostNumber].lastExecutionStartDate) < 1 && (new Date().getTime() - runnerProcesses[hostNumber].lastExecutionStartDate.getTime()) > timeout - 10)) {
                 totalTimeouts += 1;
-                logger.info(`${hostNumber} timed out! Killing it!`);
+                logger.debug(`${hostNumber} timed out after ${timePassed} seconds! Killing it!`);
                 const result = runnerProcesses[hostNumber].runner.kill('SIGTERM')
                 logger.debug(`Kill result: ${result}`);
                 logger.debug("Cleaning up runnerProcess list.")
@@ -74,7 +74,7 @@ async function sendNext(nextJobString: string, hostNumber: string, currentPhase:
                 const runner = startRunner(runnerIndex)
                 maxRunnerIndex = runnerIndex;
                 runnerProcesses[runnerIndex.toString()] = { runner };
-
+                makeKeepAliveCall()
             }
         }
         catch (err) {
@@ -122,7 +122,7 @@ async function onRunnerMessage(message: string, channel: string) {
                         sendNext(nextJobString, hostNumber, currentPhase)
                     } else if (Object.keys(executionsRunning).length === 0) {
                         await makeKeepAliveCall()
-                        dispatchTasks()
+                        dispatchTasks(currentPhase)
                     }
 
 
@@ -136,13 +136,19 @@ async function onRunnerMessage(message: string, channel: string) {
     }
 }
 
-async function dispatchTasks() {
-    const currentPhase = GameTickPhase[await redisSender.get(constants.Phase) as keyof typeof GameTickPhase];
+async function onPhaseChange(message: string, channel: string) {
+    logger.debug(`Receiver Phase Change, New Phase : ${message}`)
+    dispatchTasks(GameTickPhase[message as keyof typeof GameTickPhase])
+}
+
+async function dispatchTasks(currentPhase: GameTickPhase) {
     let listName = constants.ScriptsToProcess;
     if (currentPhase === GameTickPhase.ResultProcessingPhase){
         listName = constants.ResultsToProcess;
     }
-    if(await redisSender.length(listName) > 0){
+    const listLength = await redisSender.length(listName);
+
+    if(listLength > 0){
         idleRunnerCodes.map(async (code) => {
             const nextJobString = await redisSender.pop(listName);
             if (nextJobString) {
@@ -150,15 +156,13 @@ async function dispatchTasks() {
             }
         })
         idleRunnerCodes = [];
-    } else{
-        setTimeout(() => {
-            dispatchTasks();
-        }, constants.TickCheckInterval)
     }
 }
 
 async function main() {
     await redisSubscriber.subscribe(hostChannel, onRunnerMessage);
+    await redisSubscriber.subscribe(constants.PhaseChangedChannel, onPhaseChange);
+
     await makeKeepAliveCall();
     setInterval(() => {
         makeKeepAliveCall();
