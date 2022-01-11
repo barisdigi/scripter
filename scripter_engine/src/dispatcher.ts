@@ -57,11 +57,10 @@ async function sendNext(nextJobString: string, hostNumber: string, currentPhase:
     const startTimestamp = new Date().getTime()
     runnerProcesses[hostNumber].timeout = setTimeout(() => {
         try {
-            const timePassed = (new Date().getTime() - startTimestamp) / 1000;
-            logger.debug(`Timeout has come for ${hostNumber} with ${executionsRunning[executionId]} after ${timePassed} seconds`)
+            const timePassed = (new Date().getTime() - startTimestamp);
+            logger.debug(`Timeout has come for ${hostNumber} with ${executionsRunning[executionId]} after ${timePassed} ms`)
             if (runnerProcesses[hostNumber] && (!(runnerProcesses[hostNumber].lastExecutionEndDate) || (runnerProcesses[hostNumber].lastExecutionEndDate - runnerProcesses[hostNumber].lastExecutionStartDate) < 1 && (new Date().getTime() - runnerProcesses[hostNumber].lastExecutionStartDate.getTime()) > timeout - 10)) {
                 totalTimeouts += 1;
-                logger.debug(`${hostNumber} timed out after ${timePassed} seconds! Killing it!`);
                 const result = runnerProcesses[hostNumber].runner.kill('SIGTERM')
                 logger.debug(`Kill result: ${result}`);
                 logger.debug("Cleaning up runnerProcess list.")
@@ -74,6 +73,8 @@ async function sendNext(nextJobString: string, hostNumber: string, currentPhase:
                 const runner = startRunner(runnerIndex)
                 maxRunnerIndex = runnerIndex;
                 runnerProcesses[runnerIndex.toString()] = { runner };
+                redisSender.increaseBy(constants.TotalScriptExecutionTimeKey, timePassed);
+                redisSender.increaseBy(constants.TotalNumberOfScriptExecutionsKey, 1);
                 makeKeepAliveCall()
             }
         }

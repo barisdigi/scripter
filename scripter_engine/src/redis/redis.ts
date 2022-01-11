@@ -45,5 +45,8 @@ export default class RedisWrapper {
     length(key: string){
         return this.#client.lLen(key)
     }
+    increaseBy(key: string, value: number){
+        return this.#client.incrBy(key, value);
+    }
 
 }

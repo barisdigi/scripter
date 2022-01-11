@@ -14,7 +14,11 @@ const contants = {
     DispatcherKeepAliveTimeout: 7500,
     Phase: "CurrentTickPhase",
     TickStartTimeKey: "LastTickStartTime",
-    PhaseChangedChannel: "NewPhase"
+    PhaseChangedChannel: "NewPhase",
+    TotalScriptExecutionTimeKey: "TotalScriptExecutionTime",
+    TotalNumberOfScriptExecutionsKey: "TotalNumberOfScriptExecutions",
+    TotalResultProcessingTimeKey: "TotalResultProcessingTime",
+    TotalResultProcessingNumberKey: "TotalResultProcessingNumber"
 }
 
 
