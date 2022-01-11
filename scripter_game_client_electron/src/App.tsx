@@ -83,6 +83,31 @@ function App() {
   useEffect(() => {
     if(!ws){
       const myws = new WebSocketClient()
+      axios.get(`http://localhost:8000/users/${username}/script`)
+        .then(response => {
+          if(monacoRef && monacoRef.current && monacoRef.current.editor.getModels()[1]){
+            const model = monacoRef.current.editor.getModels()[1]
+            const lineCount = model.getLineCount();
+            const lastLineLength = model.getLineMaxColumn(lineCount);
+      
+            const range = new monaco.Range(
+                lineCount,
+                lastLineLength,
+                lineCount,
+                lastLineLength
+            );
+
+            let res = model.pushEditOperations('', [
+                {range, text: response.data }
+            ])
+            editorRef.current.pushUndoStop();
+            } else{
+              files.script.value = response.data;
+            }
+        })
+        .catch(error => {
+            console.log(error);
+        });
       let onMessage = function (message: string) {
     
         if(editorRef && editorRef.current){

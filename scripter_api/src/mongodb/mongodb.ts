@@ -10,6 +10,13 @@ export default class MongoWrapper{
         return this.#client.connect();
 
     }
+    async getPlayerScript(id: string){
+        if (this.#client) {
+            const db = this.#client.db(this.#dbName);
+            const collection = db.collection('playerScripts');
+            return await collection.find({id}).toArray();
+        }
+    }
     async addPlayerScript(id: string, script: string){
         const playerId = uuid()
         if(this.#client){

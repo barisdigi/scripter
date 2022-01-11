@@ -50,6 +50,19 @@ app.put('/users/:userId/script', param('userId').custom(async (value, meta) => !
     return res.send('Edited Script')
 })
 
+app.get('/users/:userId/script', param('userId').custom(async (value, meta) => !(await isValidUser(value, meta))),async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    let result = (await mongoClient.getPlayerScript(String(req.params?.userId)))?.at(0);
+    if(result){
+        return res.send(result.script);
+    }
+    throw "script not found";
+    
+})
+
 app.listen(PORT, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
 });
