@@ -4,6 +4,9 @@ import { fork } from 'child_process';
 import os from 'os';
 import Logger from './logger/logger';
 import constants, { GameTickPhase } from './constants';
+import { ScriptExecutionMessage } from './redis/schemas/scriptExecutionMessage';
+import { Player } from './mongodb/schemas/player';
+import { IntentExecutionMessage } from './redis/schemas/intentExecutionMessage';
 
 if (process.env.NODE_ENV !== 'production') {
     // tslint:disable-next-line
@@ -46,10 +49,11 @@ async function sendNext(nextJobString: string, hostNumber: string, currentPhase:
     const nextJobObj = JSON.parse(nextJobString);
     switch (currentPhase) {
         case GameTickPhase.ScriptPhase:
-            await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify({ script: nextJobObj.script, id: executionId, userId: nextJobObj.id, job: GameTickPhase[currentPhase] }))
+            const player: Player = new Player(nextJobObj);
+            await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify(new ScriptExecutionMessage(executionId, player)))
             break;
         case GameTickPhase.ResultProcessingPhase:
-            await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify({ intents: nextJobObj, id: executionId, job: GameTickPhase[currentPhase] }))
+            await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify(new IntentExecutionMessage(executionId, nextJobObj)))
             break;
         default:
             break;

@@ -13,7 +13,7 @@ export default class MongoWrapper{
     async getPlayerScript(id: string){
         if (this.#client) {
             const db = this.#client.db(this.#dbName);
-            const collection = db.collection('playerScripts');
+            const collection = db.collection('players');
             return await collection.find({id}).toArray();
         }
     }
@@ -21,7 +21,7 @@ export default class MongoWrapper{
         const playerId = uuid()
         if(this.#client){
             const db = this.#client.db(this.#dbName);
-            const collection = db.collection('playerScripts');
+            const collection = db.collection('players');
             return await collection.insertOne({ id: id, script });
         }
     }
@@ -29,14 +29,14 @@ export default class MongoWrapper{
         const playerId = uuid()
         if(this.#client){
             const db = this.#client.db(this.#dbName);
-            const collection = db.collection('playerScripts');
+            const collection = db.collection('players');
             return await collection.updateOne({ id: id }, {$set: {script}});
         }
     }
     async getAllPlayerScripts(){
         if (this.#client) {
             const db = this.#client.db(this.#dbName);
-            const collection = db.collection('playerScripts');
+            const collection = db.collection('players');
             return await collection.find({}).toArray();
         }
     }

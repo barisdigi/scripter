@@ -1,10 +1,10 @@
 import { MongoClient } from 'mongodb'
 import LogIntent from '../intents/log/logIntent';
 import { v4 as uuid } from 'uuid';
-
+import contants from '../constants';
 export default class MongoWrapper{
     #url = 'mongodb://localhost:27017';
-    #dbName = "playerScripts";
+    #dbName = contants.MongoDBName;
     #client: MongoClient = null;
     async connect(){
         this.#client = new MongoClient(this.#url);
@@ -14,12 +14,12 @@ export default class MongoWrapper{
     async addPlayerScript(script: string){
         const playerId = uuid()
         const db = this.#client.db(this.#dbName);
-        const collection = db.collection('playerScripts');
+        const collection = db.collection(contants.MongoPlayerCollectionName);
         return await collection.insertOne({ id: playerId, script });
     }
     async getAllPlayerScripts(){
         const db = this.#client.db(this.#dbName);
-        const collection = db.collection('playerScripts');
+        const collection = db.collection(contants.MongoPlayerCollectionName);
         return await collection.find({}).toArray();
     }
 

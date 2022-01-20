@@ -5,6 +5,11 @@ import Logger from '../logger/logger';
 import Intent, { IntentTypes } from '../intents/intent';
 import LogIntent from '../intents/log/logIntent';
 import MongoWrapper from '../mongodb/mongodb';
+import { createContext } from './createPlayerContext';
+import MoveIntent from '../intents/movement/moveIntent';
+import { ScriptExecutionMessage } from '../redis/schemas/scriptExecutionMessage';
+import { DispatcherMessage } from '../redis/schemas/dispatcherMessage';
+import { IntentExecutionMessage } from '../redis/schemas/intentExecutionMessage';
 
 const logger = new Logger()
 const redisClient = new RedisWrapper()
@@ -23,45 +28,44 @@ const vm = new NodeVM({ sandbox: { ext }, console: "off", wasm: false, });
 
 
 async function getScriptToRun (message: string, channel: string){
-    const messageObj = JSON.parse(message)
-
-    const executionId = messageObj.id;
-    const job = GameTickPhase[messageObj.job as keyof typeof GameTickPhase];
+    const messageObj: DispatcherMessage = JSON.parse(message)
+    const executionId = messageObj.executionId;
+    const job = messageObj.job;
     if(job === GameTickPhase.ScriptPhase){
+        const mess: ScriptExecutionMessage = messageObj as ScriptExecutionMessage;
         const startTimestamp = new Date().getTime();
         intents = []
-        userInfo.userId = messageObj.userId;
+        userInfo.userId = mess.player.playerId;
         let timedOut = false;
         try {
-            const console = { log (val: string) {
-                const intent = new LogIntent(val, userInfo.userId, new Date().toISOString())
-                intents.push(intent)
-            } }
-            vm.freeze(console, 'console');
-            const result = vm.run(messageObj.script);
+            createContext(vm, userInfo, intents);
+            const result = vm.run(mess.player.script);
         } catch (e){
             timedOut = true;
         } finally{
-
             const endTimestamp = new Date().getTime();
             const timeInMilliseconds = (endTimestamp - startTimestamp);
-            logger.debug(`Script processing for user ${messageObj.userId} ended in ${timeInMilliseconds} milliseconds`)
+            logger.debug(`Script processing for user ${mess.player.playerId} ended in ${timeInMilliseconds} milliseconds`)
             redisClient.increaseBy(constants.TotalScriptExecutionTimeKey, timeInMilliseconds)
             redisClient.increaseBy(constants.TotalNumberOfScriptExecutionsKey, 1)
             redisClient.push(constants.ResultsToProcess, JSON.stringify(intents))
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:${timedOut}`)
         }
     } else{
+        const mess: IntentExecutionMessage = messageObj as IntentExecutionMessage;
         try{
-            const intentsToProcess: any[] = messageObj.intents
+            const intentsToProcess: any[] = mess.intents
             if(intentsToProcess.length){
                 for (const intentObj of intentsToProcess){
                     switch (intentObj.type) {
                         case IntentTypes.Log:
-                            const intent: LogIntent = new LogIntent(intentObj.message, intentObj.playerId, intentObj.time)
-                            redisClient.publish(`console_logs/${intentObj.playerId}`, intent.messageWithTime)
+                            const log = new LogIntent(intentObj.message, intentObj.playerId, intentObj.time);
+                            redisClient.publish(`console_logs/${log.playerId}`,log.messageWithTime);
                             break;
-
+                        case IntentTypes.Move:
+                            //TODO: Actually move the player instead of logging it.
+                            const move = MoveIntent.fromJSObject(intentObj);
+                            redisClient.publish(`console_logs/${move.playerId}`,`${move.direction} : ${move.playerId}`);
                         default:
                             break;
                     }

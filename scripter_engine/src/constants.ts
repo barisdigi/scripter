@@ -18,7 +18,9 @@ const contants = {
     TotalScriptExecutionTimeKey: "TotalScriptExecutionTime",
     TotalNumberOfScriptExecutionsKey: "TotalNumberOfScriptExecutions",
     TotalResultProcessingTimeKey: "TotalResultProcessingTime",
-    TotalResultProcessingNumberKey: "TotalResultProcessingNumber"
+    TotalResultProcessingNumberKey: "TotalResultProcessingNumber",
+    MongoDBName: "playerScripts",
+    MongoPlayerCollectionName: "players"
 }
 
 

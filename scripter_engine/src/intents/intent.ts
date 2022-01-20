@@ -1,6 +1,7 @@
 
 export enum IntentTypes{
     Log,
+    Move
 }
 export enum IntentProcessTypes {
     Player,
