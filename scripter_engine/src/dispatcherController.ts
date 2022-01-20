@@ -19,6 +19,10 @@ const TickCountKey = constants.TickCountKey;
 let currentPhase: GameTickPhase;
 let tickCount: number;
 
+process.on('SIGINT', () => {
+    process.exit()
+});
+
 async function addToMongoDB(){
     for (let index = 0; index < 500; index++) {
         await mongo.addPlayerScript("ext.exports = 25;")

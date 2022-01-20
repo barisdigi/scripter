@@ -38,6 +38,10 @@ let totalTimeouts = 0;
 let totalCompletes = 0;
 let maxRunnerIndex = 0;
 
+process.on('SIGINT', () => {
+    process.exit()
+});
+
 async function makeKeepAliveCall(){
     redisSender.hset(constants.DispatchersKey, hostId, JSON.stringify({ id: hostId, keepAlive: new Date().toISOString(), currentlyWorkingRunners: Object.keys(executionsRunning).length, totalCompletes }));
 }

@@ -27,6 +27,9 @@ const userInfo: {userId: string | undefined} = {
 
 const vm = new NodeVM({ sandbox: { ext }, console: "off", wasm: false, });
 
+process.on('SIGINT', () => {
+    process.exit()
+});
 
 async function getScriptToRun (message: string, channel: string){
     const messageObj: DispatcherMessage = JSON.parse(message)
