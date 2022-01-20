@@ -69,7 +69,7 @@ async function getScriptToRun (message: string, channel: string){
                             break;
                         case IntentTypes.Move:
                             const move = MoveIntent.fromJSObject(intentObj);
-                            
+
                             // TODO: Send this to the client
                             // TODO: Check if the tile the player is moving to is actually movable
                             move.addDbOperation(bulkPlayers)
@@ -81,7 +81,9 @@ async function getScriptToRun (message: string, channel: string){
         }catch (e) {
             logger.error(JSON.stringify(e));
         } finally{
-            bulkPlayers.execute();
+            if(bulkPlayers.batches.length){
+                bulkPlayers.execute();
+            }
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`)
         }
 
