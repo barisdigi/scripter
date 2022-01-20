@@ -10,6 +10,7 @@ import MoveIntent from '../intents/movement/moveIntent';
 import { ScriptExecutionMessage } from '../redis/schemas/scriptExecutionMessage';
 import { DispatcherMessage } from '../redis/schemas/dispatcherMessage';
 import { IntentExecutionMessage } from '../redis/schemas/intentExecutionMessage';
+import { UnorderedBulkOperation } from 'mongodb';
 
 const logger = new Logger()
 const redisClient = new RedisWrapper()
@@ -53,6 +54,7 @@ async function getScriptToRun (message: string, channel: string){
         }
     } else{
         const mess: IntentExecutionMessage = messageObj as IntentExecutionMessage;
+        const bulkPlayers: UnorderedBulkOperation = mongo.initializeUnorderedBulkOpForPlayer();
         try{
             const intentsToProcess: any[] = mess.intents
             if(intentsToProcess.length){
@@ -63,8 +65,10 @@ async function getScriptToRun (message: string, channel: string){
                             redisClient.publish(`console_logs/${log.playerId}`,log.messageWithTime);
                             break;
                         case IntentTypes.Move:
-                            //TODO: Actually move the player instead of logging it.
                             const move = MoveIntent.fromJSObject(intentObj);
+                            move.addDbOperation(bulkPlayers)
+                            // TODO: Send this to the client
+                            // TODO: Check if the tile the player is moving to is actually movable
                             redisClient.publish(`console_logs/${move.playerId}`,`${move.direction} : ${move.playerId}`);
                         default:
                             break;
@@ -74,6 +78,7 @@ async function getScriptToRun (message: string, channel: string){
         }catch (e) {
             logger.error(JSON.stringify(e));
         } finally{
+            bulkPlayers.execute();
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`)
         }
 

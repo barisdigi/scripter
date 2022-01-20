@@ -22,5 +22,10 @@ export default class MongoWrapper{
         const collection = db.collection(contants.MongoPlayerCollectionName);
         return await collection.find({}).toArray();
     }
+    initializeUnorderedBulkOpForPlayer(){
+        const db = this.#client.db(this.#dbName);
+        const collection = db.collection(contants.MongoPlayerCollectionName);
+        return collection.initializeUnorderedBulkOp();
+    }
 
 }
