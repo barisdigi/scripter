@@ -35,7 +35,7 @@ function createWindow() {
 
   // Open DevTools if in dev mode
   if (isDev) {
-    mainWindow.webContents.openDevTools({ mode: "bottom" });
+    mainWindow.webContents.openDevTools({ mode: "detach" });
   }
 }
 
