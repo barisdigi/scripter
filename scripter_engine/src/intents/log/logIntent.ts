@@ -13,6 +13,6 @@ export default class LogIntent implements Intent{
     }
 
     get messageWithTime(){
-        return `${this.time}: ${this.message}`
+        return JSON.stringify({message: this.message, time: this.time})
     }
 }

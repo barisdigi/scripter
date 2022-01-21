@@ -10,6 +10,7 @@ import WebSocketClient from './services/websocket/Websocket';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import axios from 'axios';
 import { ResizableBox } from 'react-resizable';
+import { Menu, Classes, MenuItem, MenuDivider, Icon } from '@blueprintjs/core';
 
 const username = "45745457"
 const files: any = {
@@ -77,6 +78,10 @@ function App() {
   function handleEditorDidMount(editor: any, monaco: any) {
     editorRef.current = editor;
     monacoRef.current = monaco;
+    // Register a new language
+    monaco.languages.register({ id: 'consoleLogLanguage' });
+    // Register a tokens provider for the language so that it is empty
+    monaco.editor.setModelLanguage(monaco.editor.getModels()[0], "consoleLogLanguage")
   }
   useEffect(() => {
     if (!ws) {
@@ -107,7 +112,6 @@ function App() {
           console.log(error);
         });
       let onMessage = function (message: string) {
-
         if (editorRef && editorRef.current) {
           const model = monacoRef.current.editor.getModels()[0]
           const lineCount = model.getLineCount();
@@ -119,9 +123,11 @@ function App() {
             lineCount,
             lastLineLength
           );
-
+          let messageObj = JSON.parse(message);
+          let dateObj = new Date(messageObj.time)
+          let dateTimeString = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`
           let res = model.pushEditOperations('', [
-            { range, text: `${message}\n` }
+            { range, text: `[${dateTimeString}] : ${messageObj.message}\n` }
           ])
           editorRef.current.pushUndoStop();
         }
@@ -133,9 +139,8 @@ function App() {
   })
   const handle = () => {
     return <div className="handle" />
-}
+  }
   function editScript() {
-
     if (editorRef && editorRef.current) {
       const model = monacoRef.current.editor.getModels()[1]
       axios.put(`http://localhost:8000/users/${username}/script`, { script: model.getValue() })
@@ -146,51 +151,49 @@ function App() {
           console.log(error);
         });
     }
-
+  }
+  function cleanConsole() {
+    if (editorRef && editorRef.current) {
+      const model = monacoRef.current.editor.getModels()[0]
+      model.setValue("");
+    }
   }
 
   return (
-    <Container className="vh-100 d-flex flex-column " style={{ height: "100%", width: "100%", margin: 0, padding: 0, maxWidth: "100%" }}>
+    <Container className="vh-100 d-flex flex-column bp3-dark" style={{ height: "100%", width: "100%", margin: 0, padding: 0, maxWidth: "100%" }}>
       <Row className='g-0' style={{ width: "100%", height: height, maxWidth: "100%" }}>
       </Row>
-      <ResizableBox height={height/4} width={width} minConstraints={[width, height/4]} maxConstraints={[Infinity, height * 0.8]} resizeHandles={['n']} axis='y' handle={handle()}>
-      <Row className="h-100 g-0" >
-      <Col className='g-0' xs={1} style={{backgroundColor: "#1e1e1e"}}>
-        <ButtonGroup vertical style={{width:"100%"}}>
-          <Button onClick={editScript} variant="secondary">Commit</Button>
-          {radios.map((radio, idx) => (
-            <ToggleButton
-              size="sm"
-              key={idx}
-              id={`radio-${idx}`}
-              type="radio"
-              variant="secondary"
-              name="radio"
-              value={radio.value}
-              checked={radioValue === radio.value}
-              onChange={(e) => setRadioValue(e.currentTarget.value)}
-            >
-              {radio.name}
-            </ToggleButton>
-          ))}
-        </ButtonGroup>
-      </Col>
-        <Col style={{height: "100%"}}>
-          <Editor
-            key="Editor"
-            height={"100%"}
-            language="javascript"
-            theme="vs-dark"
-            options={options}
-            path={file.name}
-            defaultLanguage={file.language}
-            defaultValue={file.value}
-            value={file.currentValue}
-            onMount={handleEditorDidMount}
-          />
-        </Col>
-        
-      </Row>
+      <ResizableBox height={height / 4} width={width} minConstraints={[width, height / 4]} maxConstraints={[Infinity, height * 0.8]} resizeHandles={['n']} axis='y' handle={handle()}>
+        <Row className="h-100 g-0" >
+          <Col className='g-0' xs="auto" style={{ backgroundColor: "#1e1e1e" }}>
+            <Menu >
+              <MenuItem icon="console" text="Console">
+                <MenuItem icon="eye-open" text="Open" onClick={() => setRadioValue('console')} />
+                <MenuItem icon="clean" text="Clean" onClick={cleanConsole} />
+              </MenuItem>
+              <MenuDivider />
+              <MenuItem icon="cloud-upload" text="Commit Changes" onClick={editScript} />
+              <MenuDivider />
+              <MenuItem icon="document" text="main.js" onClick={() => setRadioValue('script')} />
+              <MenuItem icon="document-open" text="New File" />
+            </Menu>
+          </Col>
+          <Col style={{ height: "100%" }}>
+            <Editor
+              key="Editor"
+              height={"100%"}
+              language="javascript"
+              theme="vs-dark"
+              options={options}
+              path={file.name}
+              defaultLanguage={file.language}
+              defaultValue={file.value}
+              value={file.currentValue}
+              onMount={handleEditorDidMount}
+            />
+          </Col>
+
+        </Row>
       </ResizableBox>
     </Container>
 
