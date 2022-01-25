@@ -1,25 +1,52 @@
 
-export default class WebSocketClient{
-    #ws: WebSocket;
-    onConsoleMessageReceived: ((msg:string) => void)[];
-    constructor(){
+export default class WebSocketClient {
+    ws: WebSocket | undefined;
+    onConsoleMessageReceived: ((msg: string) => void)[];
+    onError: ((msg: string) => void)[];
+    constructor() {
+        this.onConsoleMessageReceived = [];
+        this.onError = [];
+        this.setupWebsocket();
+
+    }
+    setupWebsocket() {
+        console.log("testings ")
         let onWebsocketMessage = (event: MessageEvent) => {
-            if(this.onConsoleMessageReceived){
-                for (const func of this.onConsoleMessageReceived){
+            if (this.onConsoleMessageReceived) {
+                for (const func of this.onConsoleMessageReceived) {
                     func(event.data)
                 }
             }
         }
-        this.onConsoleMessageReceived = [];
-        this.#ws = new WebSocket('ws://localhost:8000/consolelogs/45745457',);
-        console.log(this.#ws)
-        this.#ws.onopen = (event) => {
-            this.#ws.send(JSON.stringify({event: "subscribe", data:"console"}));
-        };
-        this.#ws.onmessage = onWebsocketMessage;
-    
+        let onWebsockeError = (event: Event) => {
+            if (this.onError) {
+                for (const func of this.onError) {
+                    func("Screeps backend connection error. Will retry connection in 5 seconds.")
+                }
+            }
+            this.ws?.close();
+        }
+        let onWebsocketClose = (event: Event) => {
+            if (this.onError) {
+                for (const func of this.onError) {
+                    func("Screeps backend connection error. Will retry connection in 5 seconds.")
+                }
+            }
+            setTimeout(() => this.setupWebsocket(), 5000)
+            this.ws?.close();
+        }
 
-          
+        this.ws = new WebSocket('ws://localhost:8000/consolelogs/45745457',);
+
+        this.ws.onopen = (event) => {
+            if (this.ws) {
+                this.ws.send(JSON.stringify({ event: "subscribe", data: "console" }));
+            }
+
+        };
+        this.ws.onmessage = onWebsocketMessage;
+        //this.ws.onerror = onWebsockeError;
+        this.ws.onclose = onWebsocketClose;
     }
 
 }

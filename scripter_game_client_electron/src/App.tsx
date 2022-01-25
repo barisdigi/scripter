@@ -3,14 +3,12 @@ import Editor, { loader, Monaco } from "@monaco-editor/react";
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
-import ButtonGroup from 'react-bootstrap/ButtonGroup'
-import ToggleButton from 'react-bootstrap/ToggleButton'
-import Button from 'react-bootstrap/Button'
+import { Position, Toaster, Toast, Intent } from "@blueprintjs/core";
 import WebSocketClient from './services/websocket/Websocket';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import axios from 'axios';
 import { ResizableBox } from 'react-resizable';
-import { Menu, Classes, MenuItem, MenuDivider, Icon } from '@blueprintjs/core';
+import { Menu, MenuItem, MenuDivider } from '@blueprintjs/core';
 
 const username = "45745457"
 const files: any = {
@@ -63,6 +61,8 @@ function useWindowDimensions() {
 function App() {
   const editorRef: any = useRef(undefined);
   const monacoRef: any = useRef(undefined);
+  const toasterRef: any = useRef(undefined);
+  const [toasts, setToasts] = useState([]);
   const [radioValue, setRadioValue] = useState('console');
   const [ws, setWs] = useState<WebSocketClient | undefined>(undefined);
   const file: any = files[radioValue];
@@ -83,34 +83,45 @@ function App() {
     // Register a tokens provider for the language so that it is empty
     monaco.editor.setModelLanguage(monaco.editor.getModels()[0], "consoleLogLanguage")
   }
+  function getScript() {
+    axios.get(`http://localhost:8000/users/${username}/script`)
+      .then(response => {
+        if (monacoRef && monacoRef.current && monacoRef.current.editor.getModels()[1]) {
+          const model = monacoRef.current.editor.getModels()[1]
+          const lineCount = model.getLineCount();
+          const lastLineLength = model.getLineMaxColumn(lineCount);
+          const range = new monaco.Range(
+            lineCount,
+            lastLineLength,
+            lineCount,
+            lastLineLength
+          );
+
+          let res = model.pushEditOperations('', [
+            { range, text: response.data }
+          ])
+          editorRef.current.pushUndoStop();
+        } else {
+          files.script.value = response.data;
+        }
+      })
+      .catch(error => {
+        toasterRef.current.show({
+          icon: "warning-sign",
+          message: "Unable retrieve script, please try again later",
+          timeout: 0,
+          intent: Intent.DANGER,
+          action: {
+            onClick: getScript,
+            text: "Retry",
+          },
+        });
+      });
+  }
   useEffect(() => {
     if (!ws) {
+      getScript();
       const myws = new WebSocketClient()
-      axios.get(`http://localhost:8000/users/${username}/script`)
-        .then(response => {
-          if (monacoRef && monacoRef.current && monacoRef.current.editor.getModels()[1]) {
-            const model = monacoRef.current.editor.getModels()[1]
-            const lineCount = model.getLineCount();
-            const lastLineLength = model.getLineMaxColumn(lineCount);
-
-            const range = new monaco.Range(
-              lineCount,
-              lastLineLength,
-              lineCount,
-              lastLineLength
-            );
-
-            let res = model.pushEditOperations('', [
-              { range, text: response.data }
-            ])
-            editorRef.current.pushUndoStop();
-          } else {
-            files.script.value = response.data;
-          }
-        })
-        .catch(error => {
-          console.log(error);
-        });
       let onMessage = function (message: string) {
         const messageObj = JSON.parse(message);
         if (editorRef && editorRef.current) {
@@ -133,13 +144,20 @@ function App() {
               { range, text: `[${dateTimeString}] : ${logMessage.message}\n` }
             )
           });
-
-          console.log(logs)
           let res = model.pushEditOperations('', logs)
           editorRef.current.pushUndoStop();
         }
       }
+      let onError = function (message: string) {
+        toasterRef.current.show({
+          icon: "warning-sign",
+          message: message,
+          timeout: 5000,
+          intent: Intent.DANGER
+        });
+      }
       myws.onConsoleMessageReceived.push(onMessage)
+      myws.onError.push(onError)
       setWs(myws)
     }
   })
@@ -167,6 +185,9 @@ function App() {
 
   return (
     <Container className="vh-100 d-flex flex-column bp3-dark" style={{ height: "100%", width: "100%", margin: 0, padding: 0, maxWidth: "100%" }}>
+      <Toaster position={Position.BOTTOM_RIGHT} usePortal ref={toasterRef}>
+        {toasts.map(toast => <Toast {...toast} />)}
+      </Toaster>
       <Row className='g-0' style={{ width: "100%", height: height, maxWidth: "100%" }}>
       </Row>
       <ResizableBox height={height / 4} width={width} minConstraints={[width, height / 4]} maxConstraints={[Infinity, height * 0.8]} resizeHandles={['n']} axis='y' handle={handle()}>
