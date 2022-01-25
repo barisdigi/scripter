@@ -1,0 +1,1 @@
+./start_api.sh & ./start_dispatcher.sh & ./start_electron.sh & ./start_master.sh
