@@ -112,6 +112,7 @@ function App() {
           console.log(error);
         });
       let onMessage = function (message: string) {
+        const messageObj = JSON.parse(message);
         if (editorRef && editorRef.current) {
           const model = monacoRef.current.editor.getModels()[0]
           const lineCount = model.getLineCount();
@@ -123,19 +124,24 @@ function App() {
             lineCount,
             lastLineLength
           );
-          let messageObj = JSON.parse(message);
-          let dateObj = new Date(messageObj.time)
-          let dateTimeString = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`
-          let res = model.pushEditOperations('', [
-            { range, text: `[${dateTimeString}] : ${messageObj.message}\n` }
-          ])
+          const logs: { range: monaco.Range; text: string; }[] = []
+          messageObj.logs.forEach((logMessage: { time: string, message: string }) => {
+            let dateObj = new Date(logMessage.time)
+            let dateTimeString = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`
+
+            logs.push(
+              { range, text: `[${dateTimeString}] : ${logMessage.message}\n` }
+            )
+          });
+
+          console.log(logs)
+          let res = model.pushEditOperations('', logs)
           editorRef.current.pushUndoStop();
         }
       }
       myws.onConsoleMessageReceived.push(onMessage)
       setWs(myws)
     }
-
   })
   const handle = () => {
     return <div className="handle" />

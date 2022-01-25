@@ -5,16 +5,16 @@ export default class RedisWrapper {
     isReady = false;
     #client = createClient();
 
-    constructor(){
+    constructor() {
         this.#client.on("ready", (err) => {
             this.isReady = false;
         });
         this.#client.connect();
     }
-    get(key: string){
+    get(key: string) {
         return this.#client.get(key);
     }
-    set(key:string, value:string){
+    set(key: string, value: string) {
         return this.#client.set(key, value);
     }
     hget(key: string, field: string) {
@@ -23,29 +23,28 @@ export default class RedisWrapper {
     hset(key: string, field: string, value: string) {
         return this.#client.hSet(key, field, value);
     }
-    hdel(key: string, field: string){
+    hdel(key: string, field: string) {
         return this.#client.hDel(key, field);
     }
-    hgetall(key: string){
+    hgetall(key: string) {
         return this.#client.hGetAll(key);
     }
-    push(key: string, value: string | string[]){
-
+    push(key: string, value: string | string[]) {
         return this.#client.lPush(key, value);
     }
-    pop(key: string){
+    pop(key: string) {
         return this.#client.lPop(key);
     }
-    subscribe(topic: string, callback: (message:string, channel:string) => void){
+    subscribe(topic: string, callback: (message: string, channel: string) => void) {
         return this.#client.subscribe(topic, callback)
     }
-    publish(channel: string, message: string){
+    publish(channel: string, message: string) {
         return this.#client.publish(channel, message);
     }
-    length(key: string){
+    length(key: string) {
         return this.#client.lLen(key)
     }
-    increaseBy(key: string, value: number){
+    increaseBy(key: string, value: number) {
         return this.#client.incrBy(key, value);
     }
 

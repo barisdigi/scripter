@@ -1,5 +1,5 @@
 import RedisWrapper from '../redis/redis'
-import { NodeVM,} from 'vm2';
+import { NodeVM, } from 'vm2';
 import constants, { GameTickPhase } from '../constants';
 import Logger from '../logger/logger';
 import Intent, { IntentTypes } from '../intents/intent';
@@ -21,7 +21,7 @@ const mongo = new MongoWrapper()
 
 let intents: Intent[] = []
 const ext = { exports: "", intents };
-const userInfo: {userId: string | undefined} = {
+const userInfo: { userId: string | undefined } = {
     userId: undefined
 }
 
@@ -31,11 +31,11 @@ process.on('SIGINT', () => {
     process.exit()
 });
 
-async function getScriptToRun (message: string, channel: string){
+async function getScriptToRun(message: string, channel: string) {
     const messageObj: DispatcherMessage = JSON.parse(message)
     const executionId = messageObj.executionId;
     const job = messageObj.job;
-    if(job === GameTickPhase.ScriptPhase){
+    if (job === GameTickPhase.ScriptPhase) {
         const mess: ScriptExecutionMessage = messageObj as ScriptExecutionMessage;
         const startTimestamp = new Date().getTime();
         intents = []
@@ -44,9 +44,9 @@ async function getScriptToRun (message: string, channel: string){
         try {
             createContext(vm, userInfo, intents);
             const result = vm.run(mess.player.script);
-        } catch (e){
+        } catch (e) {
             timedOut = true;
-        } finally{
+        } finally {
             const endTimestamp = new Date().getTime();
             const timeInMilliseconds = (endTimestamp - startTimestamp);
             logger.debug(`Script processing for user ${mess.player.playerId} ended in ${timeInMilliseconds} milliseconds`)
@@ -55,18 +55,16 @@ async function getScriptToRun (message: string, channel: string){
             redisClient.push(constants.ResultsToProcess, JSON.stringify(intents))
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:${timedOut}`)
         }
-    } else{
+    } else {
         const mess: IntentExecutionMessage = messageObj as IntentExecutionMessage;
         const bulkPlayers: UnorderedBulkOperation = mongo.initializeUnorderedBulkOpForPlayer();
-        try{
+        try {
             const intentsToProcess: any[] = mess.intents
-            if(intentsToProcess.length){
-                for (const intentObj of intentsToProcess){
+            const logIntents = intentsToProcess.filter((el: Intent) => el.type === IntentTypes.Log)
+            logIntents.PublishLogs(redisClient);
+            if (intentsToProcess.length) {
+                for (const intentObj of intentsToProcess) {
                     switch (intentObj.type) {
-                        case IntentTypes.Log:
-                            const log = new LogIntent(intentObj.message, intentObj.playerId, intentObj.time);
-                            redisClient.publish(`console_logs/${log.playerId}`,log.messageWithTime);
-                            break;
                         case IntentTypes.Move:
                             const move = MoveIntent.fromJSObject(intentObj);
 
@@ -78,10 +76,10 @@ async function getScriptToRun (message: string, channel: string){
                     }
                 }
             }
-        }catch (e) {
+        } catch (e) {
             logger.error(JSON.stringify(e));
-        } finally{
-            if(bulkPlayers.batches.length){
+        } finally {
+            if (bulkPlayers.batches.length) {
                 bulkPlayers.execute();
             }
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`)
