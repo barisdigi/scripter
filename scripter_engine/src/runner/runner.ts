@@ -1,7 +1,7 @@
 import RedisWrapper from '../../../shared/redis/client'
 import { NodeVM, } from 'vm2';
 import constants, { GameTickPhase } from '../../../shared/constants/constants';
-import Logger from '../logger/logger';
+import Logger from '../../../shared/logger/logger';
 import Intent, { IntentTypes } from '../intents/intent';
 import LogIntent from '../intents/log/logIntent';
 import MongoWrapper from '../../../shared/mongodb/client';

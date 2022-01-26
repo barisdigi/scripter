@@ -69,6 +69,9 @@ app.listen(PORT, () => {
 
 app.ws('/consolelogs/:playerId', function(ws: any, req) {
     console.log(`console_logs/${req.params.playerId}`)
+    ws.on('close', () => {
+        redisClient.unsubscribe(`console_logs/${req.params.playerId}`)
+    })
     redisClient.subscribe(`console_logs/${req.params.playerId}`,(message) => {
         ws.send(message)
     })

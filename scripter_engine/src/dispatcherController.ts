@@ -1,6 +1,6 @@
 import MongoWrapper from '../../shared/mongodb/client';
 import RedisWrapper from '../../shared/redis/client'
-import Logger from './logger/logger';
+import Logger from '../../shared/logger/logger';
 import constants, { GameTickPhase } from '../../shared/constants/constants';
 
 if (process.env.NODE_ENV !== 'production') {

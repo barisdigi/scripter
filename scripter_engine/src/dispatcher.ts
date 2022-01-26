@@ -2,7 +2,7 @@ import RedisWrapper from '../../shared/redis/client'
 import { v4 as uuid } from 'uuid';
 import { fork } from 'child_process';
 import os from 'os';
-import Logger from './logger/logger';
+import Logger from '../../shared/logger/logger';
 import constants, { GameTickPhase } from '../../shared/constants/constants';
 import { ScriptExecutionMessage } from '../../shared/redis/messages/scriptExecutionMessage';
 import { Player } from '../../shared/mongodb/schemas/player';
