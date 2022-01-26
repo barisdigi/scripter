@@ -16,6 +16,6 @@
     },
     "include": [
         "src/**/*.ts", "tests/**/*.ts"
-    ],
+, "../shared/redis/messages/dispatcherMessage.ts"    ],
     "exclude": ["node_modules", ".vscode"]
 }

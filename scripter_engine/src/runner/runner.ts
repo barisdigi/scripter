@@ -1,15 +1,15 @@
-import RedisWrapper from '../redis/redis'
+import RedisWrapper from '../../../shared/redis/client'
 import { NodeVM, } from 'vm2';
-import constants, { GameTickPhase } from '../constants';
+import constants, { GameTickPhase } from '../../../shared/constants/constants';
 import Logger from '../logger/logger';
 import Intent, { IntentTypes } from '../intents/intent';
 import LogIntent from '../intents/log/logIntent';
-import MongoWrapper from '../mongodb/mongodb';
+import MongoWrapper from '../../../shared/mongodb/client';
 import { createContext } from './createPlayerContext';
 import MoveIntent from '../intents/movement/moveIntent';
-import { ScriptExecutionMessage } from '../redis/schemas/scriptExecutionMessage';
-import { DispatcherMessage } from '../redis/schemas/dispatcherMessage';
-import { IntentExecutionMessage } from '../redis/schemas/intentExecutionMessage';
+import { ScriptExecutionMessage } from '../../../shared/redis/messages/scriptExecutionMessage';
+import { DispatcherMessage } from '../../../shared/redis/messages/dispatcherMessage';
+import { IntentExecutionMessage } from '../../../shared/redis/messages/intentExecutionMessage';
 import { UnorderedBulkOperation } from 'mongodb';
 
 const logger = new Logger()

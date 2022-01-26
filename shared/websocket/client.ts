@@ -10,7 +10,6 @@ export default class WebSocketClient {
 
     }
     setupWebsocket() {
-        console.log("testings ")
         let onWebsocketMessage = (event: MessageEvent) => {
             if (this.onConsoleMessageReceived) {
                 for (const func of this.onConsoleMessageReceived) {

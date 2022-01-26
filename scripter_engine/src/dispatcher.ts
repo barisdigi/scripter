@@ -1,12 +1,12 @@
-import RedisWrapper from './redis/redis'
+import RedisWrapper from '../../shared/redis/client'
 import { v4 as uuid } from 'uuid';
 import { fork } from 'child_process';
 import os from 'os';
 import Logger from './logger/logger';
-import constants, { GameTickPhase } from './constants';
-import { ScriptExecutionMessage } from './redis/schemas/scriptExecutionMessage';
-import { Player } from './mongodb/schemas/player';
-import { IntentExecutionMessage } from './redis/schemas/intentExecutionMessage';
+import constants, { GameTickPhase } from '../../shared/constants/constants';
+import { ScriptExecutionMessage } from '../../shared/redis/messages/scriptExecutionMessage';
+import { Player } from '../../shared/mongodb/schemas/player';
+import { IntentExecutionMessage } from '../../shared/redis/messages/intentExecutionMessage';
 
 if (process.env.NODE_ENV !== 'production') {
     // tslint:disable-next-line

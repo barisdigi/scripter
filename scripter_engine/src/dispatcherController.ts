@@ -1,7 +1,7 @@
-import MongoWrapper from './mongodb/mongodb';
-import RedisWrapper from './redis/redis'
+import MongoWrapper from '../../shared/mongodb/client';
+import RedisWrapper from '../../shared/redis/client'
 import Logger from './logger/logger';
-import constants, {GameTickPhase} from './constants';
+import constants, { GameTickPhase } from '../../shared/constants/constants';
 
 if (process.env.NODE_ENV !== 'production') {
      // tslint:disable-next-line

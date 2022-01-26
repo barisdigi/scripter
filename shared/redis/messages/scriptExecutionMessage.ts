@@ -1,5 +1,5 @@
 import { Player } from "../../mongodb/schemas/player";
-import { GameTickPhase } from "../../constants";
+import { GameTickPhase } from "../../constants/constants";
 import { DispatcherMessage } from "./dispatcherMessage";
 
 export class ScriptExecutionMessage implements DispatcherMessage{

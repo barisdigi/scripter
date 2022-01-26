@@ -1,4 +1,4 @@
-import { GameTickPhase } from "../../constants";
+import { GameTickPhase } from "../../constants/constants";
 
 export interface DispatcherMessage{
     executionId: string;

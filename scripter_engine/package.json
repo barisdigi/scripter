@@ -2,14 +2,15 @@
   "name": "scr_eng_proj",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/dispatcherController.js",
+  "main": "dist/scripter_engine/src/dispatcherController.js",
   "type": "commonjs",
+  "private": true,
   "scripts": {
     "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
     "build": "tsc",
     "prestart": "npm run build",
     "start": "node .",
-    "start:dispatcher": "npm run build && tslint -c tslint.json -p tsconfig.json --fix && tsc && node ./dist/dispatcher.js",
+    "start:dispatcher": "npm run build && tslint -c tslint.json -p tsconfig.json --fix && tsc && node ./dist/scripter_engine/src/dispatcher.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

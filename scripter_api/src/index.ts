@@ -1,10 +1,10 @@
-import MongoWrapper from './mongodb/mongodb';
+import MongoWrapper from '../../shared/mongodb/client';
 import IAddScriptRequestObject from './req_types/addScript';
 import { body, param ,CustomValidator, validationResult } from 'express-validator';
 var bodyParser = require('body-parser')
 import express from 'express';
 import expressWs from 'express-ws';
-import RedisWrapper from './redis/redis';
+import RedisWrapper from '../../shared/redis/client';
 let appBase = express();
 let wsInstance = expressWs(appBase);
 let { app } = wsInstance;

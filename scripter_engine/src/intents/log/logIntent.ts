@@ -1,4 +1,4 @@
-import RedisWrapper from "../../redis/redis";
+import RedisWrapper from "../../../../shared/redis/client";
 import Intent, { IntentProcessTypes, IntentTypes } from "../intent";
 
 declare global {

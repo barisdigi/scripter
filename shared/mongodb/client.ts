@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb'
 import { v4 as uuid } from 'uuid';
-import contants from '../constants';
+import contants from '../constants/constants';
 
 export default class MongoWrapper{
     #url = 'mongodb://localhost:27017';
@@ -23,14 +23,14 @@ export default class MongoWrapper{
         if(this.#client){
             const db = this.#client.db(this.#dbName);
             const collection = db.collection(contants.MongoPlayerCollectionName);
-            return await collection.insertOne({ playerId: playerId, script, position: {x: 20, y: 20} });
+            return await collection.insertOne({ playerId, script, position: {x: 20, y: 20} });
         }
     }
     async editPlayerScript(playerId: string, script:string){
         if(this.#client){
             const db = this.#client.db(this.#dbName);
             const collection = db.collection(contants.MongoPlayerCollectionName);
-            return await collection.updateOne({ playerId: playerId }, {$set: {script}});
+            return await collection.updateOne({ playerId }, {$set: {script}});
         }
     }
     async getAllPlayerScripts(){
@@ -47,5 +47,10 @@ export default class MongoWrapper{
             return collection.count({ playerId }, { limit: 1 }).then(result => !!result)
 
         }
+    }
+    initializeUnorderedBulkOpForPlayer(){
+        const db = this.#client.db(this.#dbName);
+        const collection = db.collection(contants.MongoPlayerCollectionName);
+        return collection.initializeUnorderedBulkOp();
     }
 }

@@ -1,5 +1,5 @@
-import Intent from "../../intents/intent";
-import { GameTickPhase } from "../../constants";
+import Intent from "../../../scripter_engine/src/intents/intent";
+import { GameTickPhase } from "../../constants/constants";
 import { DispatcherMessage } from "./dispatcherMessage";
 
 export class IntentExecutionMessage implements DispatcherMessage{

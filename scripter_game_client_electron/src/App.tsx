@@ -4,11 +4,12 @@ import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import { Position, Toaster, Toast, Intent } from "@blueprintjs/core";
-import WebSocketClient from './services/websocket/Websocket';
+import WebSocketClient from './websocket/client';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import axios from 'axios';
 import { ResizableBox } from 'react-resizable';
 import { Menu, MenuItem, MenuDivider } from '@blueprintjs/core';
+import { getCompletionModel } from './providers/completionProvider';
 
 const username = "45745457"
 const files: any = {
@@ -78,6 +79,8 @@ function App() {
   function handleEditorDidMount(editor: any, monaco: any) {
     editorRef.current = editor;
     monacoRef.current = monaco;
+
+    monaco.languages.typescript.javascriptDefaults.addExtraLib(getCompletionModel().join('\n'), 'filename/facts.d.ts');
     // Register a new language
     monaco.languages.register({ id: 'consoleLogLanguage' });
     // Register a tokens provider for the language so that it is empty
