@@ -22,7 +22,7 @@ export function createContext(vm: VM, userInfo: { userId: string }, intents: Int
     vm.freeze(Directions.SOUTH, "SOUTH");
     vm.freeze(Directions.WEST, "WEST");
     vm.freeze(Directions.EAST, "EAST");
-    vm.freeze(player, "player");
+    vm.freeze(player, "Player");
     vm.freeze(console, 'console');
 }
 

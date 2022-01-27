@@ -101,11 +101,11 @@ function App() {
           );
 
           let res = model.pushEditOperations('', [
-            { range, text: response.data }
+            { range, text: response.data.message }
           ])
           editorRef.current.pushUndoStop();
         } else {
-          files.script.value = response.data;
+          files.script.value = response.data.message;
         }
       })
       .catch(error => {
@@ -126,6 +126,7 @@ function App() {
       getScript();
       const myws = new WebSocketClient()
       let onMessage = function (message: string) {
+        console.log(message)
         const messageObj = JSON.parse(message);
         if (editorRef && editorRef.current) {
           const model = monacoRef.current.editor.getModels()[0]

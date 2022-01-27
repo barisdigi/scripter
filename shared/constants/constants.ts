@@ -1,4 +1,4 @@
-export enum GameTickPhase{
+export enum GameTickPhase {
     ScriptPhase,
     ResultProcessingPhase
 }
@@ -20,7 +20,8 @@ const contants = {
     TotalResultProcessingTimeKey: "TotalResultProcessingTime",
     TotalResultProcessingNumberKey: "TotalResultProcessingNumber",
     MongoDBName: "playerScripts",
-    MongoPlayerCollectionName: "players"
+    MongoPlayerCollectionName: "players",
+    MongoMapCollectionname: "maps"
 }
 
 

@@ -31,7 +31,7 @@ const useRoutes = (app: expressWs.Application, mongoClient: MongoWrapper) => {
         mongoClient.addPlayerScript(req.body.script);
         return returnResponse(res, 'Added Script')
     })
-    //param('userId').custom(async (value, meta) => !(isValidUser(value, meta))), 
+
     app.put('/users/:userId/script', checkSchema(UpdateScriptRequestDefinition), (req: Request, res: Response<any, Record<string, any>>) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -47,7 +47,7 @@ const useRoutes = (app: expressWs.Application, mongoClient: MongoWrapper) => {
         if (!errors.isEmpty()) {
             return returnError(errors.array()[0], res);
         }
-        let result = (await mongoClient.getPlayerScript(String(req.params?.userId)))?.at(0);
+        let result = (await mongoClient.getPlayer(String(req.params?.userId)))?.at(0);
         if (result) {
             return returnResponse(res, result.script);
         }

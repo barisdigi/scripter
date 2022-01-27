@@ -11,6 +11,7 @@ import { ScriptExecutionMessage } from '../../../shared/redis/messages/scriptExe
 import { DispatcherMessage } from '../../../shared/redis/messages/dispatcherMessage';
 import { IntentExecutionMessage } from '../../../shared/redis/messages/intentExecutionMessage';
 import { UnorderedBulkOperation } from 'mongodb';
+import { Map } from '../../../shared/mongodb/schemas/map';
 
 const logger = new Logger()
 const redisClient = new RedisWrapper()
@@ -38,7 +39,8 @@ async function getScriptToRun(message: string, channel: string) {
     if (job === GameTickPhase.ScriptPhase) {
         const mess: ScriptExecutionMessage = messageObj as ScriptExecutionMessage;
         const startTimestamp = new Date().getTime();
-        intents = []
+        intents = [];
+        const resultObj = { intents, player: mess.player }
         userInfo.userId = mess.player.playerId;
         let timedOut = false;
         try {
@@ -52,25 +54,25 @@ async function getScriptToRun(message: string, channel: string) {
             logger.debug(`Script processing for user ${mess.player.playerId} ended in ${timeInMilliseconds} milliseconds`)
             redisClient.increaseBy(constants.TotalScriptExecutionTimeKey, timeInMilliseconds)
             redisClient.increaseBy(constants.TotalNumberOfScriptExecutionsKey, 1)
-            redisClient.push(constants.ResultsToProcess, JSON.stringify(intents))
+            redisClient.push(constants.ResultsToProcess, JSON.stringify(resultObj))
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:${timedOut}`)
         }
     } else {
         const mess: IntentExecutionMessage = messageObj as IntentExecutionMessage;
         const bulkPlayers: UnorderedBulkOperation = mongo.initializeUnorderedBulkOpForPlayer();
+        const map = new Map(JSON.parse(await redisClient.hget("maps", mess.processInfo.player.position.mapId)));
+        const intentsToProcess: any[] = mess.processInfo.intents;
+        const logIntents = intentsToProcess.filter((el: Intent) => el.type === IntentTypes.Log)
         try {
-            const intentsToProcess: any[] = mess.intents
-            const logIntents = intentsToProcess.filter((el: Intent) => el.type === IntentTypes.Log)
-            logIntents.PublishLogs(redisClient);
             if (intentsToProcess.length) {
                 for (const intentObj of intentsToProcess) {
                     switch (intentObj.type) {
                         case IntentTypes.Move:
                             const move = MoveIntent.fromJSObject(intentObj);
-
                             // TODO: Send this to the client
-                            // TODO: Check if the tile the player is moving to is actually movable
-                            move.addDbOperation(bulkPlayers)
+                            if (move.validate(map, mess.processInfo.player)) {
+                                move.addDbOperation(bulkPlayers)
+                            }
                         default:
                             break;
                     }
@@ -82,6 +84,7 @@ async function getScriptToRun(message: string, channel: string) {
             if (bulkPlayers.batches.length) {
                 bulkPlayers.execute();
             }
+            logIntents.PublishLogs(redisClient);
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`)
         }
 

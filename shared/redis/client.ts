@@ -31,8 +31,12 @@ export default class RedisWrapper {
     hget(key: string, field: string) {
         return this.#client.hGet(key, field);
     }
+
     hset(key: string, field: string, value: string) {
         return this.#client.hSet(key, field, value);
+    }
+    hsetnx(key: string, field: string, value: string) {
+        return this.#client.hSetNX(key, field, value);
     }
     hdel(key: string, field: string) {
         return this.#client.hDel(key, field);
