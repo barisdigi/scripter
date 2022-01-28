@@ -24,12 +24,15 @@ app.listen(PORT, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
 });
 
-app.ws('/consolelogs/:playerId', function (ws: any, req) {
-    console.log(`console_logs/${req.params.playerId}`)
+app.ws('/players/:playerId/maps/:mapId', function (ws: any, req) {
+    console.log(`players/${req.params.playerId}/maps/${req.params.mapId}`)
     ws.on('close', () => {
         redisClient.unsubscribe(`console_logs/${req.params.playerId}`)
     })
     redisClient.subscribe(`console_logs/${req.params.playerId}`, (message) => {
+        ws.send(message)
+    })
+    redisClient.subscribe(`maps/${req.params.mapId}/changes`, (message) => {
         ws.send(message)
     })
 });

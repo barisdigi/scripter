@@ -1,10 +1,17 @@
 
+function createMapTopic(map: string) {
+    return `maps/${map}/changes`
+}
 export default class WebSocketClient {
     ws: WebSocket | undefined;
+    mapId: string;
     onConsoleMessageReceived: ((msg: string) => void)[];
+    onMapChangesReceived: ((msg: string) => void)[];
     onError: ((msg: string) => void)[];
-    constructor() {
+    constructor(mapId: string) {
+        this.mapId = mapId;
         this.onConsoleMessageReceived = [];
+        this.onMapChangesReceived = [];
         this.onError = [];
         this.setupWebsocket();
 
@@ -17,14 +24,6 @@ export default class WebSocketClient {
                 }
             }
         }
-        let onWebsockeError = (event: Event) => {
-            if (this.onError) {
-                for (const func of this.onError) {
-                    func("Screeps backend connection error. Will retry connection in 5 seconds.")
-                }
-            }
-            this.ws?.close();
-        }
         let onWebsocketClose = (event: Event) => {
             if (this.onError) {
                 for (const func of this.onError) {
@@ -34,8 +33,7 @@ export default class WebSocketClient {
             setTimeout(() => this.setupWebsocket(), 5000)
             this.ws?.close();
         }
-
-        this.ws = new WebSocket('ws://localhost:8000/consolelogs/45745457',);
+        this.ws = new WebSocket('ws://localhost:8000/players/45745457/maps/1',);
 
         this.ws.onopen = (event) => {
             if (this.ws) {

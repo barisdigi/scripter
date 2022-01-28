@@ -18,7 +18,9 @@ interface IPlayerExecObject {
     intents: Intent[]
     player: Player
 }
-
+function createMapTopic(map: Map) {
+    return `maps/${map.mapId}/changes`
+}
 const logger = new Logger()
 const redisClient = new RedisWrapper()
 const redisSubscriber = new RedisWrapper()
@@ -68,8 +70,9 @@ async function getScriptToRun(message: string, channel: string) {
         const allPlayers: IPlayerExecObject[] = (await redisClient.popAll(`resultsPerMap:${mess.mapIdToProcess}`)).map((elem) => { return JSON.parse(elem) })
         const bulkPlayers: UnorderedBulkOperation = mongo.initializeUnorderedBulkOpForPlayer();
         const map = new Map(JSON.parse(await redisClient.hget("maps", mess.mapIdToProcess)));
-        for (const PlayerObj of allPlayers) {
-            const intentsToProcess: any[] = PlayerObj.intents;
+        const changes = []
+        for (const playerObj of allPlayers) {
+            const intentsToProcess: any[] = playerObj.intents;
             const logIntents = intentsToProcess.filter((el: Intent) => el.type === IntentTypes.Log)
             try {
                 if (intentsToProcess.length) {
@@ -78,7 +81,16 @@ async function getScriptToRun(message: string, channel: string) {
                             case IntentTypes.Move:
                                 const move = MoveIntent.fromJSObject(intentObj);
                                 // TODO: Send this to the client
-                                if (move.validate(map, PlayerObj.player)) {
+                                if (move.validate(map, playerObj.player)) {
+                                    changes.push(
+                                        {
+                                            context: "PLAYER",
+                                            action: "MOVE",
+                                            result: {
+                                                ...move.getNewPositions(playerObj.player)
+                                            }
+                                        }
+                                    )
                                     move.addDbOperation(bulkPlayers)
                                 }
                             default:
@@ -92,8 +104,13 @@ async function getScriptToRun(message: string, channel: string) {
                 if (bulkPlayers.batches.length) {
                     bulkPlayers.execute();
                 }
+                // Publish changes for the map
+
                 logIntents.PublishLogs(redisClient);
-                redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`)
+                if(changes.length){
+                    redisClient.publish(createMapTopic(map), JSON.stringify({changes}));
+                }
+                redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`);
             }
         }
     }

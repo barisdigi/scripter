@@ -124,32 +124,34 @@ function App() {
   useEffect(() => {
     if (!ws) {
       getScript();
-      const myws = new WebSocketClient()
+      const myws = new WebSocketClient("1")
       let onMessage = function (message: string) {
-        console.log(message)
         const messageObj = JSON.parse(message);
-        if (editorRef && editorRef.current) {
-          const model = monacoRef.current.editor.getModels()[0]
-          const lineCount = model.getLineCount();
-          const lastLineLength = model.getLineMaxColumn(lineCount);
+        console.log(messageObj)
+        if (messageObj.logs) {
+          if (editorRef && editorRef.current) {
+            const model = monacoRef.current.editor.getModels()[0]
+            const lineCount = model.getLineCount();
+            const lastLineLength = model.getLineMaxColumn(lineCount);
 
-          const range = new monaco.Range(
-            lineCount,
-            lastLineLength,
-            lineCount,
-            lastLineLength
-          );
-          const logs: { range: monaco.Range; text: string; }[] = []
-          messageObj.logs.forEach((logMessage: { time: string, message: string }) => {
-            let dateObj = new Date(logMessage.time)
-            let dateTimeString = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`
+            const range = new monaco.Range(
+              lineCount,
+              lastLineLength,
+              lineCount,
+              lastLineLength
+            );
+            const logs: { range: monaco.Range; text: string; }[] = []
+            messageObj.logs.forEach((logMessage: { time: string, message: string }) => {
+              let dateObj = new Date(logMessage.time)
+              let dateTimeString = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`
 
-            logs.push(
-              { range, text: `[${dateTimeString}] : ${logMessage.message}\n` }
-            )
-          });
-          let res = model.pushEditOperations('', logs)
-          editorRef.current.pushUndoStop();
+              logs.push(
+                { range, text: `[${dateTimeString}] : ${logMessage.message}\n` }
+              )
+            });
+            let res = model.pushEditOperations('', logs)
+            editorRef.current.pushUndoStop();
+          }
         }
       }
       let onError = function (message: string) {
