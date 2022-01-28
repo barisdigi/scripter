@@ -12,10 +12,10 @@ export interface ViewportProps {
 export interface PixiComponentViewportProps extends ViewportProps {
   app: PIXI.Application;
 }
-
+let viewport: PixiViewport | undefined = undefined;
 const PixiComponentViewport = PixiComponent("Viewport", {
   create: (props: PixiComponentViewportProps) => {
-    const viewport = new PixiViewport({
+    viewport = new PixiViewport({
       screenWidth: props.width,
       screenHeight: props.height,
       worldWidth: 2000,
@@ -24,16 +24,24 @@ const PixiComponentViewport = PixiComponent("Viewport", {
       interaction: props.app.renderer.plugins.interaction
     });
     viewport.drag({mouseButtons: "left"}).decelerate().clamp({
-        direction: "all"
+        left: -200,
+        bottom: 2200,
+        right: 2200,
+        top: -200
     }).pinch().wheel().clampZoom({});
-
     return viewport;
   }
 });
-
+export let resizeViewport = (x: number, y: number) => {
+    viewport?.resize(
+        x,
+        y,
+        2000,
+        2000,
+    );
+}
 const Viewport = (props: ViewportProps) => {
   const app = useApp();
   return <PixiComponentViewport app={app} {...props} />;
 };
-
 export default Viewport;

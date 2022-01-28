@@ -12,8 +12,9 @@ import { Menu, MenuItem, MenuDivider } from '@blueprintjs/core';
 import { getCompletionModel } from './providers/completionProvider';
 import bunnyImg from "./components/gameObjects/bunny.png";
 import circle from "./components/gameObjects/circle.png";
-import { Stage, Sprite } from "@inlet/react-pixi";
-import Viewport from './components/viewport/viewport';
+import { Stage, Sprite, Graphics } from "@inlet/react-pixi";
+import Viewport, { resizeViewport } from './components/viewport/viewport';
+import React from 'react';
 
 const username = "45745457"
 const files: any = {
@@ -195,10 +196,15 @@ function App() {
   }
   function onResize(_: any, y: any,) {
     if (y) {
+      resizeViewport(y.size.width, y.size.height)
       setGameConsoleHeight(height - y.size.height)
     }
 
   }
+  const drawBorder = React.useCallback(g => {
+    g.lineStyle(10, 0xff0000)
+    g.drawRect(0, 0, 2000, 2000)
+  }, [])
   return (
     <Container className="vh-100 d-flex flex-column bp3-dark" style={{ height: "100%", width: "100%", margin: 0, padding: 0, maxWidth: "100%" }}>
       <Toaster position={Position.BOTTOM_RIGHT} usePortal ref={toasterRef}>
@@ -206,7 +212,8 @@ function App() {
       </Toaster>
       <Row className='g-0' style={{ width: "100%", height: gameConsoleHeight, maxWidth: "100%" }}>
         <Stage width={width} height={gameConsoleHeight} options={{ backgroundColor: 0x1e1e1e }}>
-          <Viewport width={width} height={height}>
+          <Viewport width={width} height={(height / 4) * 3}>
+            <Graphics draw={drawBorder} />
             <Sprite image={bunnyImg} x={20} y={20} anchor={0.5} />
             <Sprite image={bunnyImg} x={180} y={20} anchor={0.5} />
             <Sprite image={bunnyImg} x={20} y={180} anchor={0.5} />

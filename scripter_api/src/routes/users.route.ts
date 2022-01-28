@@ -1,5 +1,6 @@
 import { body, CustomValidator, param, validationResult } from 'express-validator';
 import { Response } from 'express';
+import returnResponse from './returnResponse';
 import expressWs from 'express-ws';
 import MongoWrapper from '../../../shared/mongodb/client';
 import AddScriptRequestDefinition from '../req_types/addScriptRequest'
@@ -9,12 +10,6 @@ import { returnError } from '../errors/error';
 import UpdateScriptRequestDefinition from '../req_types/updateScriptRequest';
 
 const useRoutes = (app: expressWs.Application, mongoClient: MongoWrapper) => {
-    function returnResponse(res: Response<any, Record<string, any>>, message: string) {
-        res.json({
-            message
-        })
-    }
-
     const isValidUser: CustomValidator = value => {
         return mongoClient.playerExists(value).then(userExists => {
             if (!userExists) {
