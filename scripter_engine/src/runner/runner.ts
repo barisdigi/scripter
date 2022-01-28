@@ -12,6 +12,12 @@ import { DispatcherMessage } from '../../../shared/redis/messages/dispatcherMess
 import { IntentExecutionMessage } from '../../../shared/redis/messages/intentExecutionMessage';
 import { UnorderedBulkOperation } from 'mongodb';
 import { Map } from '../../../shared/mongodb/schemas/map';
+import { Player } from '../../../shared/mongodb/schemas/player';
+
+interface IPlayerExecObject {
+    intents: Intent[]
+    player: Player
+}
 
 const logger = new Logger()
 const redisClient = new RedisWrapper()
@@ -54,40 +60,42 @@ async function getScriptToRun(message: string, channel: string) {
             logger.debug(`Script processing for user ${mess.player.playerId} ended in ${timeInMilliseconds} milliseconds`)
             redisClient.increaseBy(constants.TotalScriptExecutionTimeKey, timeInMilliseconds)
             redisClient.increaseBy(constants.TotalNumberOfScriptExecutionsKey, 1)
-            redisClient.push(constants.ResultsToProcess, JSON.stringify(resultObj))
+            redisClient.push(`resultsPerMap:${mess.player.position.mapId}`, JSON.stringify(resultObj))
             redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:${timedOut}`)
         }
     } else {
         const mess: IntentExecutionMessage = messageObj as IntentExecutionMessage;
+        const allPlayers: IPlayerExecObject[] = (await redisClient.popAll(`resultsPerMap:${mess.mapIdToProcess}`)).map((elem) => { return JSON.parse(elem) })
         const bulkPlayers: UnorderedBulkOperation = mongo.initializeUnorderedBulkOpForPlayer();
-        const map = new Map(JSON.parse(await redisClient.hget("maps", mess.processInfo.player.position.mapId)));
-        const intentsToProcess: any[] = mess.processInfo.intents;
-        const logIntents = intentsToProcess.filter((el: Intent) => el.type === IntentTypes.Log)
-        try {
-            if (intentsToProcess.length) {
-                for (const intentObj of intentsToProcess) {
-                    switch (intentObj.type) {
-                        case IntentTypes.Move:
-                            const move = MoveIntent.fromJSObject(intentObj);
-                            // TODO: Send this to the client
-                            if (move.validate(map, mess.processInfo.player)) {
-                                move.addDbOperation(bulkPlayers)
-                            }
-                        default:
-                            break;
+        const map = new Map(JSON.parse(await redisClient.hget("maps", mess.mapIdToProcess)));
+        for (const PlayerObj of allPlayers) {
+            const intentsToProcess: any[] = PlayerObj.intents;
+            const logIntents = intentsToProcess.filter((el: Intent) => el.type === IntentTypes.Log)
+            try {
+                if (intentsToProcess.length) {
+                    for (const intentObj of intentsToProcess) {
+                        switch (intentObj.type) {
+                            case IntentTypes.Move:
+                                const move = MoveIntent.fromJSObject(intentObj);
+                                // TODO: Send this to the client
+                                if (move.validate(map, PlayerObj.player)) {
+                                    move.addDbOperation(bulkPlayers)
+                                }
+                            default:
+                                break;
+                        }
                     }
                 }
+            } catch (e) {
+                logger.error(JSON.stringify(e));
+            } finally {
+                if (bulkPlayers.batches.length) {
+                    bulkPlayers.execute();
+                }
+                logIntents.PublishLogs(redisClient);
+                redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`)
             }
-        } catch (e) {
-            logger.error(JSON.stringify(e));
-        } finally {
-            if (bulkPlayers.batches.length) {
-                bulkPlayers.execute();
-            }
-            logIntents.PublishLogs(redisClient);
-            redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`)
         }
-
     }
 }
 

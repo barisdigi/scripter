@@ -9,7 +9,6 @@ const contants = {
     DispatchersKey: 'dispatchers',
     TickCountKey: "CurrentTickCount",
     ScriptsToProcess: "ScriptsToProcess",
-    ResultsToProcess: "ResultsToProcess",
     DispatchersKeepaliveSendInterval: 5000,
     DispatcherKeepAliveTimeout: 7500,
     Phase: "CurrentTickPhase",
@@ -21,7 +20,8 @@ const contants = {
     TotalResultProcessingNumberKey: "TotalResultProcessingNumber",
     MongoDBName: "playerScripts",
     MongoPlayerCollectionName: "players",
-    MongoMapCollectionname: "maps"
+    MongoMapCollectionname: "maps",
+    MapsToProcess: "mapsToProcess"
 }
 
 

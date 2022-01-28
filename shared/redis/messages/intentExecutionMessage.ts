@@ -6,12 +6,9 @@ import { DispatcherMessage } from "./dispatcherMessage";
 export class IntentExecutionMessage implements DispatcherMessage {
     executionId: string;
     job: GameTickPhase = GameTickPhase.ResultProcessingPhase;
-    processInfo: {
-        intents: Intent[]
-        player: Player
-    };
-    constructor(executionId: string, processInfo: { intents: Intent[], player: Player }) {
+    mapIdToProcess: string;
+    constructor(executionId: string, mapIdToProcess: string) {
         this.executionId = executionId;
-        this.processInfo = processInfo;
+        this.mapIdToProcess = mapIdToProcess;
     }
 }

@@ -66,5 +66,12 @@ export default class RedisWrapper {
     increaseBy(key: string, value: number) {
         return this.#client.incrBy(key, value);
     }
+    async popAll(key: string): Promise<string[]>{
+        const redisMulti = this.#client.multi();
+        redisMulti.lRange(key, 0, -1);
+        redisMulti.del(key);
+        // @ts-ignore
+        return (await redisMulti.exec())[0];
+    }
 
 }

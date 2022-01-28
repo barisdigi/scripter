@@ -67,7 +67,7 @@ async function checkIfScriptPhaseDone(){
 async function checkIfResultProcessingPhaseDone(){
     const dispatchers = await redisSender.hgetall(constants.DispatchersKey);
     const dispatchersList: any[] = [];
-    const scriptsToRunLength = await redisSender.length(constants.ResultsToProcess);
+    const scriptsToRunLength = await redisSender.length(constants.MapsToProcess);
     for (const key of Object.keys(dispatchers)) {
         dispatchersList.push(JSON.parse(dispatchers[key]));
     }
@@ -96,10 +96,12 @@ async function checkIfResultProcessingPhaseDone(){
 }
 
 async function startResultProcessingPhase(){
-    logger.debug(`Starting result processing phase for tick ${tickCount}`)
-    await redisSender.set(constants.Phase, GameTickPhase[GameTickPhase.ResultProcessingPhase])
-    await redisSender.publish(constants.PhaseChangedChannel, GameTickPhase[GameTickPhase.ResultProcessingPhase])
-    checkIfResultProcessingPhaseDone()
+    logger.debug(`Starting result processing phase for tick ${tickCount}`);
+    await redisSender.set(constants.Phase, GameTickPhase[GameTickPhase.ResultProcessingPhase]);
+    //TODO: Change this to get the map list from database
+    await redisSender.push(constants.MapsToProcess, "1");
+    await redisSender.publish(constants.PhaseChangedChannel, GameTickPhase[GameTickPhase.ResultProcessingPhase]);
+    checkIfResultProcessingPhaseDone();
 }
 
 async function startNewTick(){

@@ -57,7 +57,7 @@ async function sendNext(nextJobString: string, hostNumber: string, currentPhase:
             await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify(new ScriptExecutionMessage(executionId, player)))
             break;
         case GameTickPhase.ResultProcessingPhase:
-            await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify(new IntentExecutionMessage(executionId, nextJobObj)))
+            await redisSender.publish(`${hostChannel}:${hostNumber}`, JSON.stringify(new IntentExecutionMessage(executionId, nextJobString)))
             break;
         default:
             break;
@@ -121,7 +121,7 @@ async function onRunnerMessage(message: string, channel: string) {
                     if(currentPhase === GameTickPhase.ScriptPhase){
                         nextJobString = await redisSender.pop(constants.ScriptsToProcess);
                     } else{
-                        nextJobString = await redisSender.pop(constants.ResultsToProcess);
+                        nextJobString = await redisSender.pop(constants.MapsToProcess);
                     }
 
                     if (!nextJobString) {
@@ -153,7 +153,7 @@ async function onPhaseChange(message: string, channel: string) {
 async function dispatchTasks(currentPhase: GameTickPhase) {
     let listName = constants.ScriptsToProcess;
     if (currentPhase === GameTickPhase.ResultProcessingPhase){
-        listName = constants.ResultsToProcess;
+        listName = constants.MapsToProcess;
     }
     const listLength = await redisSender.length(listName);
 
