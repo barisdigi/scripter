@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import Editor, { loader, Monaco } from "@monaco-editor/react";
+import Editor, { loader } from "@monaco-editor/react";
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
@@ -10,6 +10,10 @@ import axios from 'axios';
 import { ResizableBox } from 'react-resizable';
 import { Menu, MenuItem, MenuDivider } from '@blueprintjs/core';
 import { getCompletionModel } from './providers/completionProvider';
+import bunnyImg from "./components/gameObjects/bunny.png";
+import circle from "./components/gameObjects/circle.png";
+import { Stage, Sprite } from "@inlet/react-pixi";
+import Viewport from './components/viewport/viewport';
 
 const username = "45745457"
 const files: any = {
@@ -42,7 +46,6 @@ function getWindowDimensions() {
     height
   };
 }
-
 function useWindowDimensions() {
   const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
 
@@ -63,6 +66,7 @@ function App() {
   const editorRef: any = useRef(undefined);
   const monacoRef: any = useRef(undefined);
   const toasterRef: any = useRef(undefined);
+
   const [toasts, setToasts] = useState([]);
   const [radioValue, setRadioValue] = useState('console');
   const [ws, setWs] = useState<WebSocketClient | undefined>(undefined);
@@ -70,6 +74,7 @@ function App() {
   const renderValidationDecorations: 'editable' | 'off' = files[radioValue].renderValidationDecorations
   const editorReadOnly: boolean = files[radioValue].readOnly
   const { height, width } = useWindowDimensions();
+  const [gameConsoleHeight, setGameConsoleHeight] = useState((height / 4) * 3);
   const options = {
     selectOnLineNumbers: true,
     renderValidationDecorations: renderValidationDecorations,
@@ -188,15 +193,29 @@ function App() {
       model.setValue("");
     }
   }
+  function onResize(_: any, y: any,) {
+    if (y) {
+      setGameConsoleHeight(height - y.size.height)
+    }
 
+  }
   return (
     <Container className="vh-100 d-flex flex-column bp3-dark" style={{ height: "100%", width: "100%", margin: 0, padding: 0, maxWidth: "100%" }}>
       <Toaster position={Position.BOTTOM_RIGHT} usePortal ref={toasterRef}>
         {toasts.map(toast => <Toast {...toast} />)}
       </Toaster>
-      <Row className='g-0' style={{ width: "100%", height: height, maxWidth: "100%" }}>
+      <Row className='g-0' style={{ width: "100%", height: gameConsoleHeight, maxWidth: "100%" }}>
+        <Stage width={width} height={gameConsoleHeight} options={{ backgroundColor: 0x1e1e1e }}>
+          <Viewport width={width} height={height}>
+            <Sprite image={bunnyImg} x={20} y={20} anchor={0.5} />
+            <Sprite image={bunnyImg} x={180} y={20} anchor={0.5} />
+            <Sprite image={bunnyImg} x={20} y={180} anchor={0.5} />
+            <Sprite image={circle} x={180} y={180} anchor={0.5} />
+            <Sprite image={circle} x={100} y={100} anchor={0.5} />
+          </Viewport>
+        </Stage>
       </Row>
-      <ResizableBox height={height / 4} width={width} minConstraints={[width, height / 4]} maxConstraints={[Infinity, height * 0.8]} resizeHandles={['n']} axis='y' handle={handle()}>
+      <ResizableBox height={height / 4} width={width} minConstraints={[width, height / 4]} maxConstraints={[Infinity, height * 0.8]} resizeHandles={['n']} axis='y' onResize={onResize} handle={handle()}>
         <Row className="h-100 g-0" >
           <Col className='g-0' xs="auto" style={{ backgroundColor: "#1e1e1e" }}>
             <Menu >

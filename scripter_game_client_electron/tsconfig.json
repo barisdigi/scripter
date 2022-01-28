@@ -22,5 +22,5 @@
   },
   "include": [
     "src"
-, "public/client_build", "public/monica-editor"  ]
+, "public/monica-editor"  ]
 }

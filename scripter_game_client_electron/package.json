@@ -9,6 +9,7 @@
   "dependencies": {
     "@blueprintjs/core": "^3.52.0",
     "@blueprintjs/icons": "^3.31.0",
+    "@inlet/react-pixi": "^6.6.5",
     "@monaco-editor/react": "^4.3.1",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^11.2.7",
@@ -22,6 +23,7 @@
     "cross-env": "^7.0.3",
     "electron-is-dev": "^1.2.0",
     "flexbox-react": "^4.4.0",
+    "pixi-viewport": "^4.34.4",
     "react": "^17.0.2",
     "react-bootstrap": "^2.1.1",
     "react-dom": "^17.0.2",

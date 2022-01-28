@@ -105,7 +105,6 @@ async function getScriptToRun(message: string, channel: string) {
                     bulkPlayers.execute();
                 }
                 // Publish changes for the map
-
                 logIntents.PublishLogs(redisClient);
                 if(changes.length){
                     redisClient.publish(createMapTopic(map), JSON.stringify({changes}));
