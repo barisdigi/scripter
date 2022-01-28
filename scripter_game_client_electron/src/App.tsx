@@ -208,7 +208,7 @@ function App() {
               <MenuItem icon="cloud-upload" text="Commit Changes" onClick={editScript} />
               <MenuDivider />
               <MenuItem icon="document" text="main.js" onClick={() => setRadioValue('script')} />
-              <MenuItem icon="document-open" text="New File" />
+              <MenuItem icon="document-open" text="New File" disabled />
             </Menu>
           </Col>
           <Col style={{ height: "100%" }}>
