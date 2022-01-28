@@ -76,6 +76,7 @@ function App() {
   const editorReadOnly: boolean = files[radioValue].readOnly
   const { height, width } = useWindowDimensions();
   const [gameConsoleHeight, setGameConsoleHeight] = useState((height / 4) * 3);
+  const [gameState, setGameState] = useState({ players: [] })
   const options = {
     selectOnLineNumbers: true,
     renderValidationDecorations: renderValidationDecorations,
@@ -196,8 +197,8 @@ function App() {
   }
   function onResize(_: any, y: any,) {
     if (y) {
-      resizeViewport(y.size.width, y.size.height)
       setGameConsoleHeight(height - y.size.height)
+      resizeViewport(y.size.width, y.size.height)
     }
 
   }
@@ -211,14 +212,13 @@ function App() {
         {toasts.map(toast => <Toast {...toast} />)}
       </Toaster>
       <Row className='g-0' style={{ width: "100%", height: gameConsoleHeight, maxWidth: "100%" }}>
-        <Stage width={width} height={gameConsoleHeight} options={{ backgroundColor: 0x1e1e1e }}>
+        <Stage width={width} height={gameConsoleHeight} options={{ backgroundColor: 0x1e1e1e }} >
           <Viewport width={width} height={(height / 4) * 3}>
             <Graphics draw={drawBorder} />
+            {gameState.players.forEach((player) => {
+              <Sprite image={circle} x={180} y={180} anchor={0.5} />
+            })}
             <Sprite image={bunnyImg} x={20} y={20} anchor={0.5} />
-            <Sprite image={bunnyImg} x={180} y={20} anchor={0.5} />
-            <Sprite image={bunnyImg} x={20} y={180} anchor={0.5} />
-            <Sprite image={circle} x={180} y={180} anchor={0.5} />
-            <Sprite image={circle} x={100} y={100} anchor={0.5} />
           </Viewport>
         </Stage>
       </Row>
