@@ -10,7 +10,7 @@ import { returnError } from '../errors/error';
 import GetMapRequestDefinition from '../req_types/getMapRequest';
 
 const useRoutes = (app: expressWs.Application, mongoClient: MongoWrapper) => {
-    app.get('/maps/:mapId',checkSchema(GetMapRequestDefinition) , async (req: Request, res: Response<any, Record<string, any>>) => {
+    app.get('/maps/:mapId', checkSchema(GetMapRequestDefinition), async (req: Request, res: Response<any, Record<string, any>>) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return returnError(errors.array()[0], res);

@@ -42,7 +42,7 @@ process.on('SIGINT', () => {
     process.exit()
 });
 
-async function makeKeepAliveCall(){
+async function makeKeepAliveCall() {
     redisSender.hset(constants.DispatchersKey, hostId, JSON.stringify({ id: hostId, keepAlive: new Date().toISOString(), currentlyWorkingRunners: Object.keys(executionsRunning).length, totalCompletes }));
 }
 
@@ -118,9 +118,9 @@ async function onRunnerMessage(message: string, channel: string) {
                         }
                     }
                     let nextJobString: string;
-                    if(currentPhase === GameTickPhase.ScriptPhase){
+                    if (currentPhase === GameTickPhase.ScriptPhase) {
                         nextJobString = await redisSender.pop(constants.ScriptsToProcess);
-                    } else{
+                    } else {
                         nextJobString = await redisSender.pop(constants.MapsToProcess);
                     }
 
@@ -152,12 +152,12 @@ async function onPhaseChange(message: string, channel: string) {
 
 async function dispatchTasks(currentPhase: GameTickPhase) {
     let listName = constants.ScriptsToProcess;
-    if (currentPhase === GameTickPhase.ResultProcessingPhase){
+    if (currentPhase === GameTickPhase.ResultProcessingPhase) {
         listName = constants.MapsToProcess;
     }
     const listLength = await redisSender.length(listName);
 
-    if(listLength > 0){
+    if (listLength > 0) {
         idleRunnerCodes.map(async (code) => {
             const nextJobString = await redisSender.pop(listName);
             if (nextJobString) {
@@ -185,7 +185,7 @@ async function main() {
 
 function startRunner(runnerIndex: number) {
     // TODO: Find a way to properly inherit dispatcher env
-    return fork(runnerFile, [hostChannel, runnerIndex.toString()], { env: {"REDIS_URL": "localhost"} });
+    return fork(runnerFile, [hostChannel, runnerIndex.toString()], { env: { "REDIS_URL": "localhost" } });
 }
 
 if (require.main === module) {

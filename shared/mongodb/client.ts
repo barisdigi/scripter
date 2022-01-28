@@ -58,11 +58,11 @@ export default class MongoWrapper {
     async getUsersInMap(mapId: string) {
         const db = this.#client.db(this.#dbName);
         const collection = db.collection(contants.MongoPlayerCollectionName);
-        return await collection.find({ "position.mapId": { $eq: mapId }}).project({ _id: 0, playerId: 1, position: 1}).toArray();
-}
-initializeUnorderedBulkOpForPlayer() {
-    const db = this.#client.db(this.#dbName);
-    const collection = db.collection(contants.MongoPlayerCollectionName);
-    return collection.initializeUnorderedBulkOp();
-}
+        return await collection.find({ "position.mapId": { $eq: mapId } }).project({ _id: 0, playerId: 1, position: 1 }).toArray();
+    }
+    initializeUnorderedBulkOpForPlayer() {
+        const db = this.#client.db(this.#dbName);
+        const collection = db.collection(contants.MongoPlayerCollectionName);
+        return collection.initializeUnorderedBulkOp();
+    }
 }

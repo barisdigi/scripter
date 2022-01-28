@@ -5,41 +5,42 @@ import { Player } from "../../../../shared/mongodb/schemas/player";
 import { DirectionCoordinateManager, Directions } from "../../consts/directions";
 import Intent, { IntentProcessTypes, IntentTypes } from "../intent";
 
-export default class MoveIntent implements Intent{
+export default class MoveIntent implements Intent {
     playerId: string;
     type: IntentTypes = IntentTypes.Move;
     context: IntentProcessTypes = IntentProcessTypes.Player;
     direction: Directions;
 
-    constructor(playerId: string, direction: Directions){
+    constructor(playerId: string, direction: Directions) {
         this.direction = direction;
         this.playerId = playerId;
     }
-    static fromJSObject(jsObject: {playerId: string, direction: Directions}){
+    static fromJSObject(jsObject: { playerId: string, direction: Directions }) {
         return new this(jsObject.playerId, jsObject.direction)
     }
-    getNewPositions(player: Player){
+    getNewPositions(player: Player) {
         let x: number;
         let y: number;
-        ({x, y} = DirectionCoordinateManager.getDirectionVectors(this.direction));
+        ({ x, y } = DirectionCoordinateManager.getDirectionVectors(this.direction));
         const newX = player.position.x + x;
         const newY = player.position.y + y;
-        return {newX, newY}
+        return { newX, newY }
     }
 
-    validate(map: Map, player: Player): boolean{
+    validate(map: Map, player: Player): boolean {
         let newX: number;
         let newY: number;
-        ({newX, newY} = this.getNewPositions(player))
-        if(newX < map.size.x && newY < map.size.y && newX >= 0 && newY >= 0){
+        ({ newX, newY } = this.getNewPositions(player))
+        if (newX < map.size.x && newY < map.size.y && newX >= 0 && newY >= 0) {
             return true;
         }
         return false
     }
-    addDbOperation(bulk: UnorderedBulkOperation){
+    addDbOperation(bulk: UnorderedBulkOperation) {
         let x: number;
         let y: number;
-        ({x, y} = DirectionCoordinateManager.getDirectionVectors(this.direction));
+        ({ x, y } = DirectionCoordinateManager.getDirectionVectors(this.direction));
+        console.log(x, y, this.playerId)
         bulk.find({ playerId: this.playerId }).updateOne({ $inc: { "position.x": x, "position.y": y } })
     }
 }

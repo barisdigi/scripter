@@ -13,7 +13,7 @@ const GetMapRequestDefinition: Schema = {
             errorMessage: ErrorType[ErrorType.NOT_FOUND],
             options: async (value, { req, location, path }) => {
                 return await mongoClient.mapExists(value).then(val => {
-                    if (!val){
+                    if (!val) {
                         return Promise.reject();
                     }
                 });

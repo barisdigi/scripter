@@ -71,10 +71,12 @@ async function getScriptToRun(message: string, channel: string) {
         const bulkPlayers: UnorderedBulkOperation = mongo.initializeUnorderedBulkOpForPlayer();
         const map = new Map(JSON.parse(await redisClient.hget("maps", mess.mapIdToProcess)));
         const changes = []
-        for (const playerObj of allPlayers) {
-            const intentsToProcess: any[] = playerObj.intents;
-            const logIntents = intentsToProcess.filter((el: Intent) => el.type === IntentTypes.Log)
-            try {
+        let allLogIntents: Intent[] = []
+        try {
+            for (const playerObj of allPlayers) {
+                const intentsToProcess: any[] = playerObj.intents;
+                const logIntents = intentsToProcess.filter((el: Intent) => el.type === IntentTypes.Log)
+                allLogIntents = allLogIntents.concat(logIntents);
                 if (intentsToProcess.length) {
                     for (const intentObj of intentsToProcess) {
                         switch (intentObj.type) {
@@ -91,6 +93,7 @@ async function getScriptToRun(message: string, channel: string) {
                                             }
                                         }
                                     )
+
                                     move.addDbOperation(bulkPlayers)
                                 }
                             default:
@@ -98,19 +101,19 @@ async function getScriptToRun(message: string, channel: string) {
                         }
                     }
                 }
-            } catch (e) {
-                logger.error(JSON.stringify(e));
-            } finally {
-                if (bulkPlayers.batches.length) {
-                    bulkPlayers.execute();
-                }
-                // Publish changes for the map
-                logIntents.PublishLogs(redisClient);
-                if(changes.length){
-                    redisClient.publish(createMapTopic(map), JSON.stringify({changes}));
-                }
-                redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`);
             }
+        } catch (e) {
+            logger.error(JSON.stringify(e));
+        } finally {
+            if (bulkPlayers.batches.length) {
+                bulkPlayers.execute();
+            }
+            // Publish changes for the map
+            allLogIntents.PublishLogs(redisClient);
+            if (changes.length) {
+                redisClient.publish(createMapTopic(map), JSON.stringify({ changes }));
+            }
+            redisClient.publish(hostChannel, `ready:${runnerId}:${executionId}:false`);
         }
     }
 }
