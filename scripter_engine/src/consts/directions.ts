@@ -11,10 +11,10 @@ export class DirectionCoordinateManager {
 
         switch (direction) {
             case Directions.NORTH:
-                y++
+                y--
                 break;
             case Directions.SOUTH:
-                y--
+                y++
                 break;
             case Directions.EAST:
                 x++;
