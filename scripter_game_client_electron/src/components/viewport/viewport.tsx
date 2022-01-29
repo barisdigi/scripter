@@ -7,6 +7,7 @@ export interface ViewportProps {
     width: number;
     height: number;
     children?: React.ReactNode;
+    map: { size: { x: number, y: number } }
 }
 
 export interface PixiComponentViewportProps extends ViewportProps {
@@ -20,24 +21,37 @@ let clamp = {
     right: 2200,
     top: -200
 }
+let map: { size: { x: number, y: number } } | undefined = undefined;
 const PixiComponentViewport = PixiComponent("Viewport", {
     create: (props: PixiComponentViewportProps) => {
         viewport = new PixiViewport({
             screenWidth: props.width,
             screenHeight: props.height,
-            worldWidth: 2000,
-            worldHeight: 2000,
+            worldWidth: props.map.size.x * 20,
+            worldHeight: props.map.size.y * 20,
             interaction: props.app.renderer.plugins.interaction,
+            ticker: props.app.ticker,
             passiveWheel: true
         });
+        map = props.map;
+        clamp.left = -1 * ((props.map.size.x * 20) / 3)
+        clamp.right = (props.map.size.x * 20) + 400
+        clamp.bottom = props.map.size.y * 20 + 200;
         viewport.drag({ mouseButtons: "left" }).clamp(clamp).pinch().wheel().clampZoom({});
         pixiApp = props.app;
+        
         return viewport;
     }
 });
 export let resizeViewport = (x: number, y: number) => {
-    clamp.bottom = 2000 + y;
-    viewport?.drag({ mouseButtons: "left" }).clamp(clamp).pinch().wheel().clampZoom({});
+    if (map) {
+        clamp.bottom = map.size.y * 20 + y;
+        viewport?.drag({ mouseButtons: "left" }).clamp(clamp).pinch().wheel().clampZoom({});
+    }
+}
+export let updateViewport = () => {
+    pixiApp?.render()
+
 }
 
 const Viewport = (props: ViewportProps) => {

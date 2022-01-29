@@ -121,7 +121,7 @@ async function main() {
     await mongo.connect();
     // Add maps to redis if they don't exist at start
     const map = await mongo.getMap("1");
-    redisSender.hsetnx("maps", "1", JSON.stringify(map))
+    redisSender.hset("maps", "1", JSON.stringify(map))
     currentPhase = GameTickPhase[await redisSender.get(constants.Phase) as keyof typeof GameTickPhase];
 
     if(currentPhase === undefined || currentPhase === null){

@@ -13,7 +13,7 @@ import { getCompletionModel } from './providers/completionProvider';
 import bunnyImg from "./components/gameObjects/bunny.png";
 import circle from "./components/gameObjects/circle.png";
 import { Stage, Sprite, Graphics } from "@inlet/react-pixi";
-import Viewport, { resizeViewport } from './components/viewport/viewport';
+import Viewport, { resizeViewport, updateViewport } from './components/viewport/viewport';
 import React from 'react';
 
 const username = "45745457"
@@ -68,6 +68,7 @@ function App() {
   const monacoRef: any = useRef(undefined);
   const toasterRef: any = useRef(undefined);
 
+  const [map, setMap] = useState(undefined);
   const [toasts, setToasts] = useState([]);
   const [radioValue, setRadioValue] = useState('console');
   const [ws, setWs] = useState<WebSocketClient | undefined>(undefined);
@@ -76,7 +77,10 @@ function App() {
   const editorReadOnly: boolean = files[radioValue].readOnly
   const { height, width } = useWindowDimensions();
   const [gameConsoleHeight, setGameConsoleHeight] = useState((height / 4) * 3);
-  const [gameState, setGameState] = useState({ players: [] })
+  const [players, setPlayers] = useState([])
+  const playersRef = useRef([]);
+  playersRef.current = players;
+  console.log(players)
   const options = {
     selectOnLineNumbers: true,
     renderValidationDecorations: renderValidationDecorations,
@@ -92,6 +96,28 @@ function App() {
     monaco.languages.register({ id: 'consoleLogLanguage' });
     // Register a tokens provider for the language so that it is empty
     monaco.editor.setModelLanguage(monaco.editor.getModels()[0], "consoleLogLanguage")
+  }
+  const [, updateState] = React.useState();
+  //@ts-ignore
+  const forceUpdate = React.useCallback(() => updateState({}), []);
+  function getMap() {
+    axios.get(`http://localhost:8000/maps/1`)
+      .then(response => {
+        setPlayers(response.data.players)
+        setMap(response.data.map)
+
+      }).catch(error => {
+        toasterRef.current.show({
+          icon: "warning-sign",
+          message: "Unable retrieve script, please try again later",
+          timeout: 0,
+          intent: Intent.DANGER,
+          action: {
+            onClick: getScript,
+            text: "Retry",
+          },
+        });
+      });
   }
   function getScript() {
     axios.get(`http://localhost:8000/users/${username}/script`)
@@ -128,13 +154,30 @@ function App() {
         });
       });
   }
+  let processChanges = (changes: any) => {
+    let playerChanges = changes.filter((change: { context: string }) => { return change.context === "PLAYER" })
+
+    for (const playerChange of playerChanges) {
+      let playerIndex = playersRef.current.findIndex((player) => {
+        //@ts-ignore
+        return player.playerId === playerChange.playerId
+      })
+      let player = playersRef.current[playerIndex];
+      //@ts-ignore
+      player.position.x = playerChange.result.newX;
+      //@ts-ignore
+      player.position.y = playerChange.result.newY;
+      setPlayers(playersRef.current)
+    }
+    forceUpdate();
+  }
   useEffect(() => {
     if (!ws) {
       getScript();
+      getMap();
       const myws = new WebSocketClient("1")
       let onMessage = function (message: string) {
         const messageObj = JSON.parse(message);
-        console.log(messageObj)
         if (messageObj.logs) {
           if (editorRef && editorRef.current) {
             const model = monacoRef.current.editor.getModels()[0]
@@ -159,6 +202,9 @@ function App() {
             let res = model.pushEditOperations('', logs)
             editorRef.current.pushUndoStop();
           }
+        }
+        else if (messageObj.changes) {
+          processChanges(messageObj.changes)
         }
       }
       let onError = function (message: string) {
@@ -202,8 +248,20 @@ function App() {
     }
 
   }
+  const drawGrid = React.useCallback((g) => {
+    if (map) {
+      let currentMap: { size: { x: number, y: number } } = map;
+      for (let x = 0; x < currentMap.size.x; x++) {
+        for (let y = 0; y < currentMap.size.y; y++) {
+          g.lineStyle(2, 0x555956)
+          g.drawRect(x * 20, y * 20, 20, 20)
+
+        }
+      }
+    }
+  }, [map])
   const drawBorder = React.useCallback(g => {
-    g.lineStyle(10, 0xff0000)
+    g.lineStyle(5, 0xff0000)
     g.drawRect(0, 0, 2000, 2000)
   }, [])
   return (
@@ -211,15 +269,18 @@ function App() {
       <Toaster position={Position.BOTTOM_RIGHT} usePortal ref={toasterRef}>
         {toasts.map(toast => <Toast {...toast} />)}
       </Toaster>
-      <Row className='g-0' style={{ width: "100%", height: gameConsoleHeight, maxWidth: "100%" }}>
-        <Stage width={width} height={gameConsoleHeight} options={{ backgroundColor: 0x1e1e1e }} >
-          <Viewport width={width} height={(height / 4) * 3}>
-            <Graphics draw={drawBorder} />
-            {gameState.players.forEach((player) => {
-              <Sprite image={circle} x={180} y={180} anchor={0.5} />
-            })}
-            <Sprite image={bunnyImg} x={20} y={20} anchor={0.5} />
-          </Viewport>
+      <Row className='g-0' style={{ width: "100%", height: gameConsoleHeight, maxWidth: "100%" }} >
+        <Stage renderOnComponentChange={true} width={width} height={gameConsoleHeight} options={{ backgroundColor: 0x1e1e1e }}  >
+          {map ? <Viewport width={width} height={(height / 4) * 3} map={map} >
+            <Graphics draw={drawGrid} />
+            {
+              players.map((player) => {
+                console.log("REDRAW", player)
+                //@ts-ignore
+                return [<Sprite image={circle} x={player.position.x * 20} y={player.position.y * 20} anchor={0} />]
+              })
+            }
+          </Viewport> : undefined}
         </Stage>
       </Row>
       <ResizableBox height={height / 4} width={width} minConstraints={[width, height / 4]} maxConstraints={[Infinity, height * 0.8]} resizeHandles={['n']} axis='y' onResize={onResize} handle={handle()}>

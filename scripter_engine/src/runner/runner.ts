@@ -88,6 +88,7 @@ async function getScriptToRun(message: string, channel: string) {
                                         {
                                             context: "PLAYER",
                                             action: "MOVE",
+                                            playerId: playerObj.player.playerId,
                                             result: {
                                                 ...move.getNewPositions(playerObj.player)
                                             }
