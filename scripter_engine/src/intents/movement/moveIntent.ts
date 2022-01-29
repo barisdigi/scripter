@@ -40,7 +40,6 @@ export default class MoveIntent implements Intent {
         let x: number;
         let y: number;
         ({ x, y } = DirectionCoordinateManager.getDirectionVectors(this.direction));
-        console.log(x, y, this.playerId)
         bulk.find({ playerId: this.playerId }).updateOne({ $inc: { "position.x": x, "position.y": y } })
     }
 }

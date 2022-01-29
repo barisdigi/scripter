@@ -80,7 +80,6 @@ function App() {
   const [players, setPlayers] = useState([])
   const playersRef = useRef([]);
   playersRef.current = players;
-  console.log(players)
   const options = {
     selectOnLineNumbers: true,
     renderValidationDecorations: renderValidationDecorations,
@@ -253,7 +252,7 @@ function App() {
       let currentMap: { size: { x: number, y: number } } = map;
       for (let x = 0; x < currentMap.size.x; x++) {
         for (let y = 0; y < currentMap.size.y; y++) {
-          g.lineStyle(2, 0x555956)
+          g.lineStyle(1, 0x555956)
           g.drawRect(x * 20, y * 20, 20, 20)
 
         }
@@ -275,7 +274,6 @@ function App() {
             <Graphics draw={drawGrid} />
             {
               players.map((player) => {
-                console.log("REDRAW", player)
                 //@ts-ignore
                 return [<Sprite image={circle} x={player.position.x * 20} y={player.position.y * 20} anchor={0} />]
               })

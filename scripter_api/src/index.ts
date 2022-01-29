@@ -25,7 +25,6 @@ app.listen(PORT, () => {
 });
 
 app.ws('/players/:playerId/maps/:mapId', function (ws: any, req) {
-    console.log(`players/${req.params.playerId}/maps/${req.params.mapId}`)
     ws.on('close', () => {
         redisClient.unsubscribe(`console_logs/${req.params.playerId}`)
     })

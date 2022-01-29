@@ -74,6 +74,7 @@ async function getScriptToRun(message: string, channel: string) {
         let allLogIntents: Intent[] = []
         try {
             for (const playerObj of allPlayers) {
+                let lastMovement: MoveIntent | undefined;
                 const intentsToProcess: any[] = playerObj.intents;
                 const logIntents = intentsToProcess.filter((el: Intent) => el.type === IntentTypes.Log)
                 allLogIntents = allLogIntents.concat(logIntents);
@@ -82,26 +83,26 @@ async function getScriptToRun(message: string, channel: string) {
                         switch (intentObj.type) {
                             case IntentTypes.Move:
                                 const move = MoveIntent.fromJSObject(intentObj);
-                                // TODO: Send this to the client
                                 if (move.validate(map, playerObj.player)) {
-                                    changes.push(
-                                        {
-                                            context: "PLAYER",
-                                            action: "MOVE",
-                                            playerId: playerObj.player.playerId,
-                                            result: {
-                                                ...move.getNewPositions(playerObj.player)
-                                            }
-                                        }
-                                    )
-
-                                    move.addDbOperation(bulkPlayers)
+                                    lastMovement = move;
                                 }
                             default:
                                 break;
                         }
                     }
                 }
+                if(lastMovement){
+                    lastMovement.addDbOperation(bulkPlayers)
+                    changes.push({
+                        context: "PLAYER",
+                        action: "MOVE",
+                        playerId: playerObj.player.playerId,
+                        result: {
+                            ...lastMovement.getNewPositions(playerObj.player)
+                        }
+                    })
+                }
+
             }
         } catch (e) {
             logger.error(JSON.stringify(e));
