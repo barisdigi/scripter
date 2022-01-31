@@ -55,6 +55,7 @@ async function getScriptToRun(message: string, channel: string) {
             createContext(vm, userInfo, intents);
             const result = vm.run(mess.player.script);
         } catch (e) {
+            logger.error(JSON.stringify(e))
             timedOut = true;
         } finally {
             const endTimestamp = new Date().getTime();
