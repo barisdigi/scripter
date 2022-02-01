@@ -3,6 +3,7 @@ import React from "react";
 import Viewport from "./viewport/viewport";
 import circle from "./gameObjects/circle.png";
 import { IPlayer } from "../../types";
+import Player from "./gameObjects/player";
 
 interface IGameProps {
     players: IPlayer[]
@@ -27,11 +28,11 @@ function Game(props: IGameProps) {
     }, [props.map])
     return (
         <Stage renderOnComponentChange={true} width={props.gameConsoleWidth} height={props.gameConsoleHeight} options={{ backgroundColor: 0x1e1e1e }}  >
-            {props.map ? <Viewport width={props.gameConsoleWidth} height={(props.windowHeight /4) * 3} map={props.map} >
+            {props.map ? <Viewport width={props.gameConsoleWidth} height={(props.windowHeight / 4) * 3} map={props.map} >
                 <Graphics draw={drawGrid} />
                 {
                     props.players.map((player: IPlayer) => {
-                        return <Sprite image={circle} x={player.position.x * 20} y={player.position.y * 20} anchor={0} />
+                        return <Player player={player} />
                     })
                 }
             </Viewport> : undefined}

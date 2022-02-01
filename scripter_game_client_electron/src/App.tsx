@@ -11,7 +11,7 @@ import React from 'react';
 import ScripterEditor from './components/codeEditor/ScripterEditor/scripterEditor';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { editorManagerAtom, toasterManagerAtom } from './recoilStates';
-import { IEditorManager } from './types';
+import { IEditorManager, IPlayer } from './types';
 import LeftPanel from './components/codeEditor/LeftPanel/leftPanel';
 import { ToastProps } from 'react-bootstrap';
 import Game from './components/game/game';
@@ -54,9 +54,6 @@ function App() {
 
     toasterRef.current.show(toast);
   }
-
-
-
   const [map, setMap] = useState(undefined);
   const [ws, setWs] = useState<WebSocketClient | undefined>(undefined);
 
@@ -90,14 +87,11 @@ function App() {
     let playerChanges = changes.filter((change: { context: string }) => { return change.context === "PLAYER" })
 
     for (const playerChange of playerChanges) {
-      let playerIndex = playersRef.current.findIndex((player) => {
-        //@ts-ignore
+      let playerIndex = playersRef.current.findIndex((player: IPlayer) => {
         return player.playerId === playerChange.playerId
       })
-      let player = playersRef.current[playerIndex];
-      //@ts-ignore
+      let player: IPlayer = playersRef.current[playerIndex];
       player.position.x = playerChange.result.newX;
-      //@ts-ignore
       player.position.y = playerChange.result.newY;
       setPlayers(playersRef.current)
     }
