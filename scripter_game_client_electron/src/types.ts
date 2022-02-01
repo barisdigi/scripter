@@ -17,3 +17,12 @@ export interface IEditorManager {
 export interface IToaster {
     showToast?: (toast: ToastProps) => void
 }
+
+export interface IPlayer{
+    position: {
+        x: number
+        y: number
+        mapId: string
+    }
+    playerId: string
+}

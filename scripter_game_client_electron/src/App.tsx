@@ -6,16 +6,15 @@ import { Position, Toaster, Toast, Intent } from "@blueprintjs/core";
 import WebSocketClient from './services/websocket/client';
 import axios from 'axios';
 import { ResizableBox } from 'react-resizable';
-import circle from "./components/game/gameObjects/circle.png";
-import { Stage, Sprite, Graphics } from "@inlet/react-pixi";
 import Viewport, { resizeViewport } from './components/game/viewport/viewport';
 import React from 'react';
 import ScripterEditor from './components/codeEditor/ScripterEditor/scripterEditor';
-import { selector, useRecoilState, useSetRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import { editorManagerAtom, toasterManagerAtom } from './recoilStates';
 import { IEditorManager } from './types';
 import LeftPanel from './components/codeEditor/LeftPanel/leftPanel';
 import { ToastProps } from 'react-bootstrap';
+import Game from './components/game/game';
 
 function getWindowDimensions() {
   const { innerWidth: width, innerHeight: height } = window;
@@ -161,17 +160,7 @@ function App() {
         {toasts.map(toast => <Toast {...toast} />)}
       </Toaster>
       <Row className='g-0' style={{ width: "100%", height: gameConsoleHeight, maxWidth: "100%" }} >
-        <Stage renderOnComponentChange={true} width={width} height={gameConsoleHeight} options={{ backgroundColor: 0x1e1e1e }}  >
-          {map ? <Viewport width={width} height={(height / 4) * 3} map={map} >
-            <Graphics draw={drawGrid} />
-            {
-              players.map((player) => {
-                //@ts-ignore
-                return [<Sprite image={circle} x={player.position.x * 20} y={player.position.y * 20} anchor={0} />]
-              })
-            }
-          </Viewport> : undefined}
-        </Stage>
+        <Game windowHeight={height} gameConsoleHeight={gameConsoleHeight} gameConsoleWidth={width} players={players} map={map}></Game>
       </Row>
       <ResizableBox height={height / 4} width={width} minConstraints={[width, height / 4]} maxConstraints={[Infinity, height * 0.8]} resizeHandles={['n']} axis='y' onResize={onResize} handle={handle()}>
         <Row className="h-100 g-0" >

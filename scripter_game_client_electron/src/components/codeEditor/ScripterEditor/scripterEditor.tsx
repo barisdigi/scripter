@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { FuseRef, useState } from 'react';
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { getCompletionModel } from '../../../providers/completionProvider';
 import { ILogsMessageObject, ILogObject, IEditorManager } from '../../../types'
-import { atom, RecoilState, useRecoilState } from 'recoil';
+import { useRecoilState } from 'recoil';
 import { editorManagerAtom, toasterManagerAtom } from '../../../recoilStates'
 import axios from 'axios';
 import { Intent } from '@blueprintjs/core';
