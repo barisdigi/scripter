@@ -1,4 +1,4 @@
-import { FuseRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { getCompletionModel } from '../../../providers/completionProvider';
