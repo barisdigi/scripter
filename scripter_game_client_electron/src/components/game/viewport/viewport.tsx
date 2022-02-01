@@ -37,7 +37,7 @@ const PixiComponentViewport = PixiComponent("Viewport", {
         clamp.left = -1 * ((props.map.size.x * 20) / 3)
         clamp.right = (props.map.size.x * 20) + 400
         clamp.bottom = props.map.size.y * 20 + 200;
-        viewport.drag({ mouseButtons: "left" }).clamp(clamp).pinch().wheel().clampZoom({});
+        viewport.drag({ mouseButtons: "left" }).clamp(clamp).pinch().wheel().clampZoom({minScale: 1, maxScale: 4});
         pixiApp = props.app;
         
         return viewport;
