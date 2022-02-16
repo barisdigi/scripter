@@ -22,7 +22,7 @@
     "mongodb": "^4.2.2",
     "redis": "^4.0.1",
     "uuid": "^8.3.2",
-    "vm2": "^3.9.5"
+    "vm2": "^3.9.6"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
